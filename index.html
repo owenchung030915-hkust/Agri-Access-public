@@ -3,424 +3,230 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agri-Accept | Live Pilot Platform</title>
-    
-    
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <!-- Agri-Accept Styles -->
-    <link rel="stylesheet" href="shared.css" />
-    <link rel="stylesheet" href="styles.css" />
+    <meta name="description" content="Agri-Accept turns farm, satellite, and weather data into bank-ready credit evidence for Indonesian agriculture.">
+    <meta property="og:title" content="Agri-Accept | Loan Readiness for Indonesian Farmers">
+    <meta property="og:description" content="Pilot platform for banks and cooperatives — satellite credit intelligence with login-gated access.">
+    <meta property="og:url" content="https://agri-access-public.vercel.app/">
+    <meta property="og:type" content="website">
+    <title>Agri-Accept | Making Every Farmer Loan-Ready</title>
+    <link rel="stylesheet" href="landing.css">
+    <script src="config.js"></script>
 </head>
 <body>
-    <div class="header">
-        <div class="header-flex">
+    <nav class="site-nav">
+        <div class="nav-inner">
+            <a class="brand" href="/">Agri-Accept</a>
+            <div class="nav-right">
+                <div class="nav-links">
+                    <a href="#about">About</a>
+                    <a href="#how-it-works">How it works</a>
+                    <a href="#features">Capabilities</a>
+                    <a href="#case-studies">Case studies</a>
+                    <a href="#indonesia">Indonesia</a>
+                </div>
+                <a class="nav-cta" href="/login.html">Login</a>
+            </div>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="hero-inner">
+            <p class="eyebrow">Public demo UI · private scoring API on Render</p>
             <h1>Agri-Accept</h1>
-            <div class="header-buttons">
-                <a href="/" class="header-btn">Home</a>
-                <a href="#" class="header-btn" id="logoutBtn">Logout</a>
-                <button onclick="document.documentElement.requestFullscreen()" class="header-btn">Present
-                </button>
+            <p class="hero-lead">
+                Making every farmer loan-ready. Turn farm, satellite, and weather data into bank-ready evidence —
+                then keep the credit decision with the bank.
+            </p>
+            <div class="hero-actions">
+                <a class="btn btn-primary" href="/login.html">Open pilot platform</a>
+                <a class="btn btn-secondary" href="#how-it-works">See how it works</a>
+            </div>
+            <div class="hero-stats">
+                <div class="stat">
+                    <strong>$25B</strong>
+                    <span>Agri credit gap</span>
+                </div>
+                <div class="stat">
+                    <strong>~1 min</strong>
+                    <span>Evidence pack</span>
+                </div>
+                <div class="stat">
+                    <strong>Login</strong>
+                    <span>Pilot-gated access</span>
+                </div>
             </div>
         </div>
-        <p>Live pilot platform · bank-ready evidence, not an AI lender</p>
-        <div class="header-subtitle">Satellite + weather proof • RF/HistGBM/XGB ensemble • Basel III • agri-accept-private.onrender.com
-        </div>
-    </div>
-        
-    <div class="main-grid">
-            <div class="control-panel">
+    </header>
 
-                <h2 class="section-title" style="margin-top: 25px;">Farm Information
-                </h2>
-                
-                <div class="form-group">
-                    <label for="farmerName">Farmer Name</label>
-                    <input type="text" id="farmerName" placeholder="e.g., Ibu Siti" value="Ibu Siti Nurhasanah">
-                </div>
-                
-                <div class="form-group">
-                    <label for="latitude">Latitude</label>
-                    <input type="number" id="latitude" step="0.0001" placeholder="-6.7749" value="-6.7749">
-                </div>
-                
-                <div class="form-group">
-                    <label for="longitude">Longitude</label>
-                    <input type="number" id="longitude" step="0.0001" placeholder="107.1389" value="107.1389">
-                </div>
-                
-                <div class="form-group">
-                    <label for="farmSize">Farm Size (hectares)</label>
-                    <input type="number" id="farmSize" step="0.1" placeholder="1.5" value="1.5">
-                </div>
-                
-                <div class="form-group">
-                    <label for="primaryCrop">Primary Crop</label>
-                    <select id="primaryCrop">
-                        <option value="rice">Rice (Padi)</option>
-                        <option value="palm oil">Palm Oil (Kelapa Sawit)</option>
-                        <option value="coffee">Coffee (Kopi)</option>
-                        <option value="cocoa">Cocoa (Kakao)</option>
-                        <option value="rubber">Rubber (Karet)</option>
-                    </select>
-                </div>
-                
-                
-                <h3 class="section-subtitle" style="margin-top: 25px; color: #2E7D32; font-size: 1.1em;">Loan Application
-                </h3>
-                <p style="font-size: 12px; color: #666; margin-bottom: 15px;">Credit application details and loan requirements
+    <section id="about" class="section">
+        <div class="section-inner two-col">
+            <div>
+                <h2>Loan readiness assistant — not an AI lender</h2>
+                <p>
+                    Most Indonesian smallholders lack the 3–5 years of paperwork banks require.
+                    Agri-Accept removes the blind spot: independent farm proof, cash-flow coverage, and a clear fix list.
                 </p>
-                
-                <div class="form-group">
-                    <label for="loanAmount">Requested Loan Amount (thousand Rp)</label>
-                    <input type="number" id="loanAmount" step="1000" min="1000" placeholder="e.g., 50000" value="50000">
-                    <small style="color: #666; font-size: 11px;">Amount in thousands (e.g., 50000 = Rp 50,000,000)</small>
-                </div>
-                
-                <div class="form-group">
-                    <label for="loanTerm">Loan Term (months)</label>
-                    <input type="number" id="loanTerm" min="1" max="120" placeholder="e.g., 12" value="12">
-                    <small style="color: #666; font-size: 11px;">Loan duration in months</small>
-                </div>
-                
-                <div class="form-group">
-                    <label for="loanPurpose">Loan Purpose</label>
-                    <select id="loanPurpose">
-                        <option value="working_capital">Working Capital</option>
-                        <option value="equipment">Equipment Purchase</option>
-                        <option value="land_expansion">Land Expansion</option>
-                        <option value="crop_investment">Crop Investment</option>
-                        <option value="livestock">Livestock Purchase</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="collateralType">Collateral Type</label>
-                    <select id="collateralType">
-                        <option value="none">No Collateral</option>
-                        <option value="land">Land Title</option>
-                        <option value="equipment">Agricultural Equipment</option>
-                        <option value="crops">Future Crop Harvest</option>
-                        <option value="mixed">Mixed Collateral</option>
-                    </select>
-                </div>
-                
-                <div class="demo-locations">
-    <h4>Indonesian Farm Locations</h4>
-                    <button class="demo-btn" onclick="loadDemoLocation('siti')">Indramayu Rice Farm</button>
-                    <button class="demo-btn" onclick="loadDemoLocation('budi')">Riau Palm Oil Plantation</button>
-                    <button class="demo-btn" onclick="loadDemoLocation('ratna')">Temanggung Coffee Farm</button>
-                    <button class="demo-btn" onclick="loadDemoLocation('agus')">South Sumatra Cocoa Farm</button>
-                    <button class="demo-btn" onclick="loadDemoLocation('dewi')">Lampung Coffee Cooperative</button>
-                    <button class="demo-btn" onclick="loadDemoLocation('hasan')">South Sulawesi Cocoa Cluster</button>
-                    <button class="demo-btn" onclick="loadDemoLocation('made')">Lombok Dryland Rice Farm</button>
-                    <button class="demo-btn" onclick="loadDemoLocation('yusuf')">East Kalimantan Estate</button>
-                    <div style="font-size: 10px; color: #666; margin-top: 5px;">Coordinates from major Indonesian agricultural regions
-                    </div>
-                </div>
-                
-                <button class="analyze-btn" id="analyzeButton" onclick="analyzeWithRealNASAData()">Analyze Credit Risk
-                </button>
-                
-                
-                
+                <p>
+                    Banks and cooperatives keep approve / review / reject. We deliver the verified file.
+                </p>
             </div>
-            
-            <div class="map-container">
-                <div class="map-section">
-                    <div id="map"></div>
-                    
-                    <div class="loading-overlay" id="mapLoading" style="display: none;">
-                        <div class="loading-content">
-                            <div class="loading-spinner"></div>
-                            <h4 id="loadingTitle">Analyzing Farm Credit Score</h4>
-                            <p id="loadingStatus">Processing satellite data...</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="satellite-images-section">
-                    <div class="satellite-images-title">Satellite & Weather Images
-                    </div>
-                    <div id="satelliteImagesGrid" class="satellite-images-grid">
-                        <div style="text-align: center; color: #999; font-size: 12px; grid-column: 1 / -1; padding: 20px; background: linear-gradient(135deg, #e8f5e8, #e3f2fd); border-radius: 8px; border: 2px dashed #4CAF50;">
-                            <div style="font-size: 16px; margin-bottom: 8px;"></div>
-                            <strong>Analytics Ready</strong><br>Click "Analyze Credit Score" to view satellite imagery and weather data analysis
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="results-panel">
-                <div style="background: linear-gradient(135deg, #2E7D32, #4CAF50); color: white; padding: 20px; border-radius: 12px; margin-bottom: 25px; text-align: center;">
-                    <h2 style="margin: 0; font-size: 1.3em;">Basel III Credit Assessment</h2>
-                    <p style="margin: 5px 0 0 0; opacity: 0.9; font-size: 0.9em;">Processed satellite imagery, weather data, and traditional credit factors</p>
-                </div>
-                
-                <div id="successResults" class="hidden">
-                    
-                    <!-- 1. PRIMARY RESULTS: Credit Score and Key Metrics -->
-                    <div class="analysis-result">
-                        <h4>Credit Assessment Result</h4>
-                        <div id="creditScoreArc" style="min-height: 200px; margin: 15px 0;"></div>
-                        
-                        <!-- Key Loan Decision Metrics -->
-                        <div class="key-metrics" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0;">
-                            <div class="metric-card">
-                                <div class="metric-label">Credit Score</div>
-                                <div class="metric-value" id="creditScore">---</div>
-                            </div>
-                            <div class="metric-card">
-                                <div class="metric-label">Risk Rating</div>
-                                <div class="metric-value" id="riskLevel">---</div>
-                            </div>
-                            <div class="metric-card">
-                                <div class="metric-label">Approval Probability</div>
-                                <div class="metric-value" id="approvalProbability">---</div>
-                            </div>
-                            <div class="metric-card">
-                                <div class="metric-label">Interest Rate</div>
-                                <div class="metric-value" id="interestRate">---</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- 2. LOAN TERMS & APPROVAL DETAILS -->
-                    <div class="analysis-result" id="creditAnalysisSection">
-                        <h4>Loan Assessment Details</h4>
-                        <div class="data-row">
-                            <span class="data-label">Requested Amount:</span>
-                            <span class="data-value" id="requestedLoanAmount">---</span>
-                        </div>
-                        <div class="data-row">
-                            <span class="data-label">Max Approved Amount:</span>
-                            <span class="data-value" id="maxLoanAmount">---</span>
-                        </div>
-                        <div class="data-row">
-                            <span class="data-label">Loan Term:</span>
-                            <span class="data-value" id="loanTermDisplay">---</span>
-                        </div>
-                        
-                        <!-- Basel III Risk Parameters - Collapsible -->
-                        <details class="collapsible-section" style="margin-top: 20px;">
-                            <summary style="cursor: pointer; font-weight: 600; color: #1976D2;">Basel III Risk Parameters</summary>
-                            <div class="basel-metrics-display" style="margin: 15px 0; padding: 10px; background: #f8f9fa; border-radius: 8px;">
-                                <div class="basel-metric">
-                                    <div class="basel-label">Expected Credit Loss</div>
-                                    <div class="basel-value" id="expectedCreditLossMain">---</div>
-                                </div>
-                                <div class="basel-metric">
-                                    <div class="basel-label">Probability of Default</div>
-                                    <div class="basel-value" id="probabilityOfDefaultMain">---</div>
-                                </div>
-                                <div class="basel-metric">
-                                    <div class="basel-label">Loss Given Default</div>
-                                    <div class="basel-value" id="lossGivenDefaultMain">---</div>
-                                </div>
-                            </div>
-                        </details>
-                    </div>
-                    
-                    
-                    
-                    <!-- 4. ENVIRONMENTAL CONDITIONS -->
-                    <details class="collapsible-section analysis-result" id="currentWeatherSection" style="display: none;">
-                        <summary style="cursor: pointer; font-weight: 600; color: #FF9800;">Environmental Risk Assessment</summary>
-                        <div style="padding: 15px; margin-top: 10px; background: #fff3e0; border-radius: 8px;">
-                            <div class="data-row">
-                                <span class="data-label">Current Risk Level:</span>
-                                <span class="data-value" id="liveRisk">---</span>
-                            </div>
-                            <div class="data-row">
-                                <span class="data-label">Temperature:</span>
-                                <span class="data-value" id="liveTemp">---</span>
-                            </div>
-                            <div class="data-row">
-                                <span class="data-label">Humidity:</span>
-                                <span class="data-value" id="liveHumidity">---</span>
-                            </div>
-                            <div class="data-row">
-                                <span class="data-label">Conditions:</span>
-                                <span class="data-value" id="liveConditions">---</span>
-                            </div>
-                            <div class="data-row">
-                                <span class="data-label">Precipitation (7-day):</span>
-                                <span class="data-value" id="weeklyPrecip">---</span>
-                            </div>
-                            <div class="data-row">
-                                <span class="data-label">Weather Data Sources:</span>
-                                <span class="data-value" id="weatherDataSources">---</span>
-                            </div>
-                        </div>
-                    </details>
-                    
-                    <!-- 5. DATA QUALITY & TECHNICAL DETAILS - Collapsible -->
-                    <details class="collapsible-section analysis-result" id="dataQualitySection">
-                        <summary style="cursor: pointer; font-weight: 600; color: #2E7D32;">Data Sources & Technical Details</summary>
-                        <div style="padding: 15px; margin-top: 10px; background: #f1f8e9; border-radius: 8px;">
-                            <div class="data-row">
-                                <span class="data-label">Google Earth Engine:</span>
-                                <span class="data-value" id="geeResult">---</span>
-                            </div>
-                            <div class="data-row">
-                                <span class="data-label">NASA Cropland & Vegetation:</span>
-                                <span class="data-value" id="nasaDataResult">---</span>
-                            </div>
-                            <div class="data-row">
-                                <span class="data-label">Weather APIs:</span>
-                                <span class="data-value" id="weatherApiResult">---</span>
-                            </div>
-                            <div id="validationResults" style="margin-top: 15px;">
-                                <!-- Cross-validation results will be populated -->
-                            </div>
-                            
-                            <!-- Analysis Components -->
-                            <div style="margin-top: 20px; padding: 15px; background: #e3f2fd; border-radius: 8px;">
-                                <h5 style="margin: 0 0 10px 0; color: #1976D2;">Feature Processing Summary</h5>
-                                <div id="scoreBreakdown" class="score-breakdown" style="display: block;">
-                                    <div class="breakdown-item">
-                                        <span class="breakdown-label">Satellite Features:</span>
-                                        <span class="breakdown-value" id="satelliteContrib">---</span>
-                                    </div>
-                                    <div class="breakdown-item">
-                                        <span class="breakdown-label">Weather Features:</span>
-                                        <span class="breakdown-value" id="weatherContrib">---</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </details>
-                    
-                    
-                    <!-- 3. FEATURE IMPORTANCE ANALYSIS -->
-                    <div class="analysis-result" id="shapAnalysisSection">
-                        <h4>Credit Score Drivers</h4>
-                        <p style="font-size: 12px; color: #666; margin-bottom: 15px;">
-                            <strong>SHAP Analysis:</strong>Shows how each feature contributed to the final credit score (from baseline to prediction).
-                        </p>
-                        <div id="shapVisualization" style="min-height: 400px;"></div>
-                    </div>
-                    
-                    <!-- 6. RECOMMENDATIONS -->
-                    <div class="analysis-result" id="improvementSection">
-                        <h4>Risk Mitigation Recommendations</h4>
-                        <div id="improvementSuggestions">
-                            <!-- Suggestions will be populated by JavaScript -->
-                        </div>
-                    </div>
-                </div>
-                
-                <div id="failureResults" class="hidden">
-                    <div class="analysis-result">
-                        <h4>Satellite Data Access Failed</h4>
-                        <div class="data-row">
-                            <span class="data-label">API Status:</span>
-                            <span class="data-value error" id="apiError">---</span>
-                        </div>
-                        <div class="data-row">
-                            <span class="data-label">GFSAD Error:</span>
-                            <span class="data-value error" id="gfsadError">---</span>
-                        </div>
-                        <div class="data-row">
-                            <span class="data-label">MODIS Error:</span>
-                            <span class="data-value error" id="modisError">---</span>
-                        </div>
-                        <div class="data-row">
-                            <span class="data-label">Recommendation:</span>
-                            <span class="data-value" id="recommendation">---</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Farmer-Friendly Explanation Panel -->
-                <div id="farmerExplanationContainer" class="farmer-explanation-wrapper">
-                    <!-- Farmer explanation content will be dynamically generated here -->
-                </div>
-                
+            <div class="card highlight-card">
+                <h3>Live pilot access</h3>
+                <ul>
+                    <li>Sign in at <a href="/login.html">/login.html</a></li>
+                    <li>Full analyzer at <a href="/platform.html">/platform.html</a></li>
+                    <li>Hosted on Render for private demos</li>
+                    <li>Request credentials if you do not have them yet</li>
+                </ul>
             </div>
         </div>
-    </div>
-    
-    <!-- Image Modal -->
-    <div id="imageModal" class="image-modal">
-        <div class="image-modal-content">
-            <div class="image-modal-header">
-                <h3 class="image-modal-title" id="modalTitle">Real NASA Satellite Image</h3>
-                <button class="close-modal" onclick="closeImageModal()">&times;</button>
-            </div>
-            
-            <div class="modal-image-container">
-                <img id="modalImage" class="modal-satellite-image" src="" alt="Satellite Image">
-            </div>
-            
-            <div class="modal-image-info">
-                <div class="modal-info-grid">
-                    <div class="modal-info-item">
-                        <span class="modal-info-label">Satellite Dataset</span>
-                        <span class="modal-info-value" id="modalDataset">---</span>
-                    </div>
-                    <div class="modal-info-item">
-                        <span class="modal-info-label">Resolution</span>
-                        <span class="modal-info-value" id="modalResolution">---</span>
-                    </div>
-                    <div class="modal-info-item">
-                        <span class="modal-info-label">Data Source</span>
-                        <span class="modal-info-value" id="modalSource">---</span>
-                    </div>
-                    <div class="modal-info-item">
-                        <span class="modal-info-label">Retrieval Status</span>
-                        <span class="modal-info-value" id="modalStatus">---</span>
-                    </div>
-                </div>
-            </div>
-        </div>
+    </section>
 
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <!-- Credit Score Arc Component -->
-    <script src="credit-score-arc.js"></script>
-    <!-- SHAP Visualization Component -->
-    <script src="shap-visualization.js"></script>
-    <!-- API base (same-host or split deploy) -->
-    <script src="config.js"></script>
-    <!-- Agri-Accept Shared Libraries -->
-    <script src="shared.js"></script>
-    <!-- Farmer Explanation Component -->
-    <script src="farmer-explanation.js"></script>
-    <!-- Agri-Accept Application -->
-    <script src="app.js"></script>
-    <script>
-        (async function guardPilotAuth() {
-            const token = (typeof window.agriGetAccessToken === 'function') ? window.agriGetAccessToken() : '';
-            if (!token) {
-                window.location.replace('/login?error=required');
-                return;
-            }
-            try {
-                const res = await fetch(window.agriApiUrl('/api/model-status'), {
-                    credentials: 'include',
-                    headers: window.agriAuthHeaders()
-                });
-                if (res.status === 401) {
-                    window.agriSetAccessToken('');
-                    window.location.replace('/login?error=required');
-                }
-            } catch (e) {
-                console.warn('Auth check failed (backend waking?):', e.message);
-            }
-        })();
-        document.getElementById('logoutBtn')?.addEventListener('click', async (e) => {
-            e.preventDefault();
-            try {
-                await fetch(window.agriApiUrl('/logout'), {
-                    method: 'POST',
-                    credentials: 'include',
-                    headers: window.agriAuthHeaders()
-                });
-            } catch (err) { /* ignore */ }
-            if (typeof window.agriSetAccessToken === 'function') window.agriSetAccessToken('');
-            window.location.href = '/';
-        });
-    </script>
+    <section id="how-it-works" class="section section-alt">
+        <div class="section-inner">
+            <h2 class="section-title">How it works</h2>
+            <p class="section-subtitle">From farm coordinates to a lender-ready evidence pack.</p>
+            <div class="steps">
+                <article class="step">
+                    <span class="step-num">1</span>
+                    <h3>Locate the farm</h3>
+                    <p>Pick an Indonesian demo farm or enter coordinates, crop, and loan details.</p>
+                </article>
+                <article class="step">
+                    <span class="step-num">2</span>
+                    <h3>Verify with EO + weather</h3>
+                    <p>Pull satellite and weather signals to assess vegetation, climate, and operating risk.</p>
+                </article>
+                <article class="step">
+                    <span class="step-num">3</span>
+                    <h3>Score with ensemble ML</h3>
+                    <p>Random Forest + HistGBM (+ XGBoost) output credit score, SLIK, and Basel III parameters.</p>
+                </article>
+                <article class="step">
+                    <span class="step-num">4</span>
+                    <h3>Explain &amp; decide</h3>
+                    <p>SHAP drivers and GenAI narratives help loan officers talk with farmers.</p>
+                </article>
+            </div>
+            <div class="section-cta">
+                <a class="btn btn-primary btn-on-light" href="/login.html">Sign in to run a live analysis</a>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="section">
+        <div class="section-inner">
+            <h2 class="section-title">Platform capabilities</h2>
+            <div class="feature-grid">
+                <article class="feature-card">
+                    <h3>Satellite risk intelligence</h3>
+                    <p>Multi-source imagery signals for vegetation health and land context at any farm location.</p>
+                </article>
+                <article class="feature-card">
+                    <h3>Basel III outputs</h3>
+                    <p>PD, LGD, EAD, and Expected Credit Loss formatted for banking conversations.</p>
+                </article>
+                <article class="feature-card">
+                    <h3>Explainable ensemble</h3>
+                    <p>RF + HistGBM + XGBoost with SHAP drivers — not a black-box decline.</p>
+                </article>
+                <article class="feature-card">
+                    <h3>Indonesian SLIK mapping</h3>
+                    <p>Scores aligned to the 1–5 collectibility language used in local supervision.</p>
+                </article>
+                <article class="feature-card">
+                    <h3>HKUST GenAI narratives</h3>
+                    <p>Bilingual farmer and loan-officer explanations via HKUST GenAI (with Gemini fallback).</p>
+                </article>
+                <article class="feature-card">
+                    <h3>Login-gated pilot</h3>
+                    <p>Public landing stays open; the full analyzer opens only after authorized sign-in.</p>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <section id="case-studies" class="section section-alt">
+        <div class="section-inner">
+            <h2 class="section-title">Pilot case studies</h2>
+            <p class="section-subtitle">Illustrative scenarios you can recreate in the live platform after login.</p>
+            <div class="case-grid">
+                <article class="case-card">
+                    <h3>West Java rice — working capital</h3>
+                    <p><strong>Challenge:</strong> Smallholders fail KUR screening without formal history.</p>
+                    <p><strong>Outcome:</strong> Satellite + cash-flow evidence pack in about one minute.</p>
+                </article>
+                <article class="case-card">
+                    <h3>Sumatra palm — portfolio triage</h3>
+                    <p><strong>Challenge:</strong> Branches score the same farm inconsistently.</p>
+                    <p><strong>Outcome:</strong> Consistent PD/LGD/EAD bands for risk prioritization.</p>
+                </article>
+                <article class="case-card">
+                    <h3>Central Java coffee — cooperative pack</h3>
+                    <p><strong>Challenge:</strong> Officers need something explainable at the village co-op.</p>
+                    <p><strong>Outcome:</strong> SHAP drivers and bilingual summaries for farmer conversations.</p>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <section id="indonesia" class="section">
+        <div class="section-inner two-col">
+            <div>
+                <h2>Built for Indonesia first</h2>
+                <p>
+                    Demo farms cover major production systems — rice, palm, coffee, cocoa, and dryland —
+                    from Java and Sumatra to Sulawesi, NTB, and Kalimantan.
+                </p>
+                <p>
+                    After login, open the platform, pick a demo farm, and run Analyze Credit Risk.
+                </p>
+            </div>
+            <div class="card region-card">
+                <h3>Demo farm regions</h3>
+                <ul class="region-list">
+                    <li>Indramayu — rice (West Java)</li>
+                    <li>Riau — palm oil (Sumatra)</li>
+                    <li>Temanggung — coffee (Central Java)</li>
+                    <li>South Sumatra — cocoa</li>
+                    <li>Lampung — coffee cooperative</li>
+                    <li>South Sulawesi — cocoa cluster</li>
+                    <li>Lombok — dryland rice (NTB)</li>
+                    <li>East Kalimantan — estate scale</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact" class="section demo-banner">
+        <div class="section-inner demo-banner-inner">
+            <div>
+                <h2>Enter the live pilot</h2>
+                <p>
+                    This public site is frontend-only. After Login, analysis calls the private
+                    Render backend (code stays private). First API call may take a minute while Render wakes.
+                </p>
+            </div>
+            <div style="display:flex; gap:12px; flex-wrap:wrap;">
+                <a class="btn btn-primary btn-large" href="/login.html">Pilot Login</a>
+                <a class="btn btn-secondary btn-large" href="mailto:hmchungah@connect.ust.hk?cc=owenchung03@gmail.com&subject=Agri-Accept%20Private%20Pilot%20Access%20Request" style="border-color:rgba(255,255,255,0.5);color:#fff;">Request Access</a>
+            </div>
+        </div>
+    </section>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div>
+                <strong>Agri-Accept</strong>
+                <p>Loan readiness assistant for Indonesian agriculture. Bank-ready evidence. The bank keeps the decision.</p>
+            </div>
+            <div class="footer-links">
+                <a href="/login.html">Pilot login</a>
+                <a href="/platform.html">Platform</a>
+                <a href="#about">About</a>
+            </div>
+        </div>
+        <p class="footer-copy">&copy; 2026 Agri-Accept · Public UI on Vercel · Private API on Render</p>
+    </footer>
 </body>
 </html>

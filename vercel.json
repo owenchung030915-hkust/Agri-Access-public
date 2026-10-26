@@ -1,13 +1,12 @@
 {
   "framework": null,
   "version": 2,
-  "cleanUrls": true,
+  "cleanUrls": false,
   "trailingSlash": false,
   "rewrites": [
-    { "source": "/", "destination": "/home.html" },
     { "source": "/login", "destination": "/login.html" },
-    { "source": "/platform", "destination": "/index.html" },
-    { "source": "/app", "destination": "/index.html" }
+    { "source": "/platform", "destination": "/platform.html" },
+    { "source": "/app", "destination": "/platform.html" }
   ],
   "headers": [
     {

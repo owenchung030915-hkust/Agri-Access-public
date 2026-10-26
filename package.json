@@ -1,0 +1,5 @@
+{
+  "name": "agri-accept-public",
+  "private": true,
+  "description": "Static public frontend for Agri-Accept (Vercel). API lives on Render."
+}

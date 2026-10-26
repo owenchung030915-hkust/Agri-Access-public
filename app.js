@@ -483,7 +483,7 @@ async function analyzeWithRealNASAData() {
             signal: controller.signal
         });
         if (response.status === 401) {
-            window.location.href = '/login?error=required';
+            window.location.href = '/login.html?error=required';
             return;
         }
         
