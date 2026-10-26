@@ -34,12 +34,19 @@ const API_CONFIG = {
         test: (typeof window.agriApiUrl === 'function' ? window.agriApiUrl('/api/test') : '/api/test'),
         proxyImage: (typeof window.agriApiUrl === 'function' ? window.agriApiUrl('/api/proxy-image') : '/api/proxy-image')
     },
-    timeout: 30000
+    timeout: 180000
 };
 
 function apiUrl(path) {
     if (typeof window.agriApiUrl === 'function') return window.agriApiUrl(path);
     return path;
+}
+
+function proxyImageUrl(directUrl) {
+    if (typeof window.agriProxyImageUrl === 'function') {
+        return window.agriProxyImageUrl(directUrl);
+    }
+    return apiUrl('/api/proxy-image') + '?url=' + encodeURIComponent(directUrl || '');
 }
 
 
@@ -471,7 +478,7 @@ async function analyzeWithRealNASAData() {
         console.log(' Sending farm data:', farmData);
         
         const controller = new AbortController();
-        const timeoutId = setTimeout(() =>controller.abort(), Math.max(API_CONFIG.timeout, 120000));
+        const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout);
         
         const response = await fetch(API_CONFIG.endpoints.analyze, {
             method: 'POST',
@@ -482,12 +489,16 @@ async function analyzeWithRealNASAData() {
             body: JSON.stringify(farmData),
             signal: controller.signal
         });
+        clearTimeout(timeoutId);
+
         if (response.status === 401) {
+            if (typeof window.agriSetAccessToken === 'function') window.agriSetAccessToken('');
             window.location.href = '/login.html?error=required';
             return;
         }
-        
-        clearTimeout(timeoutId);
+        if (response.status === 503) {
+            throw new Error('Scoring model is still waking up on Render. Wait ~60s and try Analyze again.');
+        }
         
         console.log(' API Response status:', response.status);
         
@@ -810,8 +821,8 @@ function displaySatelliteImagesGrid(browseImages) {
     grid.innerHTML = browseImages.map(image => {
         const color = colorMap[image.type] || '#666';
         return `
-            <div class="satellite-image-tile" style="border: 2px solid ${color}; border-radius: 8px; padding: 0; text-align: center; cursor: pointer; overflow: hidden; position: relative;" onclick="showImageModal('${image.type}', '${image.dataset}', '${image.resolution}', '${image.source}', '${apiUrl('/api/proxy-image')}?url=${encodeURIComponent(image.url)}')">
-                <img src="${apiUrl('/api/proxy-image')}?url=${encodeURIComponent(image.url)}" 
+            <div class="satellite-image-tile" style="border: 2px solid ${color}; border-radius: 8px; padding: 0; text-align: center; cursor: pointer; overflow: hidden; position: relative;" onclick="showImageModal('${image.type}', '${image.dataset}', '${image.resolution}', '${image.source}', '${proxyImageUrl(image.url)}')">
+                <img src="${proxyImageUrl(image.url)}" 
                      style="width: 100%; height: 120px; object-fit: cover; border-radius: 6px 6px 0 0;" 
                      onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
                      alt="${image.type}">
@@ -905,9 +916,9 @@ function generateStaticImageURL(type, lat, lon) {
     // Use more recent date with better satellite coverage for Indonesian agricultural areas
     const stable_date = "2024-09-01"; // Recent date with good satellite coverage
     
-    // Helper function to create proxy URL
+    // Helper function to create proxy URL (auth-safe for <img>)
     function createProxyURL(directURL) {
-        return `${apiUrl('/api/proxy-image')}?url=${encodeURIComponent(directURL)}`;
+        return proxyImageUrl(directURL);
     }
     
     switch (type) {

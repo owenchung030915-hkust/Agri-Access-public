@@ -396,17 +396,23 @@
                 window.location.replace('/login.html?error=required');
                 return;
             }
-            try {
-                const res = await fetch(window.agriApiUrl('/api/model-status'), {
-                    credentials: 'include',
-                    headers: window.agriAuthHeaders()
-                });
-                if (res.status === 401) {
-                    window.agriSetAccessToken('');
-                    window.location.replace('/login.html?error=required');
+            // Retry while Render free tier cold-starts
+            for (let attempt = 0; attempt < 8; attempt++) {
+                try {
+                    const res = await fetch(window.agriApiUrl('/api/model-status'), {
+                        credentials: 'include',
+                        headers: window.agriAuthHeaders()
+                    });
+                    if (res.status === 401) {
+                        window.agriSetAccessToken('');
+                        window.location.replace('/login.html?error=required');
+                        return;
+                    }
+                    if (res.ok) return;
+                } catch (e) {
+                    console.warn('Auth/API wake attempt', attempt + 1, e.message);
                 }
-            } catch (e) {
-                console.warn('Auth check failed (backend waking?):', e.message);
+                await new Promise((r) => setTimeout(r, 3000));
             }
         })();
         document.getElementById('logoutBtn')?.addEventListener('click', async (e) => {

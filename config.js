@@ -41,10 +41,15 @@
 
     var base = fromQuery || fromStorage || normalizeBase(window.AGRI_API_BASE) || defaultBase;
 
-    // Drop stale localhost API bookmarks when browsing production sites
+    // Drop stale / wrong API bookmarks when browsing production sites
     try {
         if (!fromQuery && fromStorage && (isRenderHost(host) || host.indexOf('vercel.app') !== -1)) {
-            if (fromStorage.indexOf('localhost') !== -1 || fromStorage.indexOf('127.0.0.1') !== -1) {
+            var bad =
+                fromStorage.indexOf('localhost') !== -1 ||
+                fromStorage.indexOf('127.0.0.1') !== -1 ||
+                fromStorage.indexOf('vercel.app') !== -1 ||
+                fromStorage === normalizeBase(window.location.origin);
+            if (bad) {
                 localStorage.removeItem('agri_api_base');
                 base = defaultBase;
             }
@@ -76,6 +81,14 @@
         var token = window.agriGetAccessToken();
         if (token) headers['Authorization'] = 'Bearer ' + token;
         return headers;
+    };
+
+    /** Build /api/proxy-image URL; append access_token for hosts that still gate the proxy. */
+    window.agriProxyImageUrl = function (imageUrl) {
+        var base = window.agriApiUrl('/api/proxy-image') + '?url=' + encodeURIComponent(imageUrl || '');
+        var token = window.agriGetAccessToken();
+        if (token) base += '&access_token=' + encodeURIComponent(token);
+        return base;
     };
 
     console.log('Agri-Accept API base:', window.AGRI_API_BASE);
