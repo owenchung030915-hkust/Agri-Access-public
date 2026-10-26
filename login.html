@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Agri-Accept | Pilot Login</title>
+    <link rel="stylesheet" href="landing.css">
+    <style>
+        .login-wrap {
+            min-height: calc(100vh - 120px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 48px 24px;
+            background: linear-gradient(160deg, #f7faf8 0%, #eef5f0 55%, #e8f0ec 100%);
+        }
+        .login-card {
+            width: 100%;
+            max-width: 420px;
+            background: #fff;
+            border: 1px solid #e3ebe4;
+            border-radius: 14px;
+            box-shadow: 0 12px 40px rgba(26, 35, 50, 0.12);
+            padding: 32px 28px;
+        }
+        .login-card h1 {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+            color: #1a2332;
+        }
+        .login-card p {
+            color: #6b7c93;
+            margin-bottom: 22px;
+            font-size: 0.95rem;
+        }
+        .login-card label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #3d4f66;
+            font-size: 0.9rem;
+        }
+        .login-card input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #d5dde5;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            font-size: 1rem;
+        }
+        .login-card input:focus {
+            outline: 2px solid #43a047;
+            border-color: #2e7d32;
+        }
+        .login-error {
+            background: #fdecea;
+            color: #b71c1c;
+            border: 1px solid #f5c6cb;
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin-bottom: 14px;
+            font-size: 0.9rem;
+            display: none;
+        }
+        .login-error.show { display: block; }
+        .login-card button {
+            width: 100%;
+            border: none;
+            cursor: pointer;
+            background: #2e7d32;
+            color: #fff;
+            font-weight: 700;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 1rem;
+        }
+        .login-card button:hover { background: #1b5e20; }
+        .login-card .back {
+            display: inline-block;
+            margin-top: 16px;
+            color: #2e7d32;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="site-nav">
+        <div class="nav-inner">
+            <a class="brand" href="/">Agri-Accept</a>
+        </div>
+    </nav>
+    <div class="login-wrap">
+        <form class="login-card" id="loginForm" method="post" action="/login">
+            <h1>Pilot platform login</h1>
+            <p>Enter your email and password to open the full Agri-Accept credit tool.</p>
+            <div class="login-error" id="loginError"></div>
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" autocomplete="username" required placeholder="you@example.com">
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" autocomplete="current-password" required placeholder="Enter password">
+            <button type="submit">Sign in to full platform</button>
+            <a class="back" href="/">Back to home</a>
+        </form>
+    </div>
+    <script src="config.js"></script>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const err = params.get('error');
+        if (err) {
+            const box = document.getElementById('loginError');
+            box.textContent = err === 'invalid' ? 'Incorrect email or password.' : 'Login required to continue.';
+            box.classList.add('show');
+        }
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const box = document.getElementById('loginError');
+            box.classList.remove('show');
+            const loginUrl = (typeof window.agriApiUrl === 'function')
+                ? window.agriApiUrl('/login')
+                : '/login';
+            try {
+                const res = await fetch(loginUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || !data.success) {
+                    box.textContent = data.error || 'Incorrect email or password.';
+                    box.classList.add('show');
+                    return;
+                }
+                if (data.access_token && typeof window.agriSetAccessToken === 'function') {
+                    window.agriSetAccessToken(data.access_token);
+                }
+                if (data.api_base) {
+                    try { localStorage.setItem('agri_api_base', data.api_base); } catch (e) {}
+                    window.AGRI_API_BASE = data.api_base;
+                }
+                // Stay on the public frontend host; API calls go to private Render
+                window.location.replace('/platform');
+            } catch (error) {
+                box.textContent = 'Could not reach the login service. Is the backend running / API base set?';
+                box.classList.add('show');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Agri-Accept turns farm, satellite, and weather data into bank-ready credit evidence for Indonesian agriculture.">
+    <meta property="og:title" content="Agri-Accept | Loan Readiness for Indonesian Farmers">
+    <meta property="og:description" content="Pilot platform for banks and cooperatives — satellite credit intelligence with login-gated access.">
+    <meta property="og:url" content="https://agri-access-public.vercel.app/">
+    <meta property="og:type" content="website">
+    <title>Agri-Accept | Making Every Farmer Loan-Ready</title>
+    <link rel="stylesheet" href="landing.css">
+    <script src="config.js"></script>
+</head>
+<body>
+    <nav class="site-nav">
+        <div class="nav-inner">
+            <a class="brand" href="/">Agri-Accept</a>
+            <div class="nav-right">
+                <div class="nav-links">
+                    <a href="#about">About</a>
+                    <a href="#how-it-works">How it works</a>
+                    <a href="#features">Capabilities</a>
+                    <a href="#case-studies">Case studies</a>
+                    <a href="#indonesia">Indonesia</a>
+                </div>
+                <a class="nav-cta" href="/login">Login</a>
+            </div>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="hero-inner">
+            <p class="eyebrow">Public demo UI · private scoring API on Render</p>
+            <h1>Agri-Accept</h1>
+            <p class="hero-lead">
+                Making every farmer loan-ready. Turn farm, satellite, and weather data into bank-ready evidence —
+                then keep the credit decision with the bank.
+            </p>
+            <div class="hero-actions">
+                <a class="btn btn-primary" href="/login">Open pilot platform</a>
+                <a class="btn btn-secondary" href="#how-it-works">See how it works</a>
+            </div>
+            <div class="hero-stats">
+                <div class="stat">
+                    <strong>$25B</strong>
+                    <span>Agri credit gap</span>
+                </div>
+                <div class="stat">
+                    <strong>~1 min</strong>
+                    <span>Evidence pack</span>
+                </div>
+                <div class="stat">
+                    <strong>Login</strong>
+                    <span>Pilot-gated access</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section id="about" class="section">
+        <div class="section-inner two-col">
+            <div>
+                <h2>Loan readiness assistant — not an AI lender</h2>
+                <p>
+                    Most Indonesian smallholders lack the 3–5 years of paperwork banks require.
+                    Agri-Accept removes the blind spot: independent farm proof, cash-flow coverage, and a clear fix list.
+                </p>
+                <p>
+                    Banks and cooperatives keep approve / review / reject. We deliver the verified file.
+                </p>
+            </div>
+            <div class="card highlight-card">
+                <h3>Live pilot access</h3>
+                <ul>
+                    <li>Sign in at <a href="/login">/login</a></li>
+                    <li>Full analyzer at <a href="/platform">/platform</a></li>
+                    <li>Hosted on Render for private demos</li>
+                    <li>Request credentials if you do not have them yet</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section id="how-it-works" class="section section-alt">
+        <div class="section-inner">
+            <h2 class="section-title">How it works</h2>
+            <p class="section-subtitle">From farm coordinates to a lender-ready evidence pack.</p>
+            <div class="steps">
+                <article class="step">
+                    <span class="step-num">1</span>
+                    <h3>Locate the farm</h3>
+                    <p>Pick an Indonesian demo farm or enter coordinates, crop, and loan details.</p>
+                </article>
+                <article class="step">
+                    <span class="step-num">2</span>
+                    <h3>Verify with EO + weather</h3>
+                    <p>Pull satellite and weather signals to assess vegetation, climate, and operating risk.</p>
+                </article>
+                <article class="step">
+                    <span class="step-num">3</span>
+                    <h3>Score with ensemble ML</h3>
+                    <p>Random Forest + HistGBM (+ XGBoost) output credit score, SLIK, and Basel III parameters.</p>
+                </article>
+                <article class="step">
+                    <span class="step-num">4</span>
+                    <h3>Explain &amp; decide</h3>
+                    <p>SHAP drivers and GenAI narratives help loan officers talk with farmers.</p>
+                </article>
+            </div>
+            <div class="section-cta">
+                <a class="btn btn-primary btn-on-light" href="/login">Sign in to run a live analysis</a>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="section">
+        <div class="section-inner">
+            <h2 class="section-title">Platform capabilities</h2>
+            <div class="feature-grid">
+                <article class="feature-card">
+                    <h3>Satellite risk intelligence</h3>
+                    <p>Multi-source imagery signals for vegetation health and land context at any farm location.</p>
+                </article>
+                <article class="feature-card">
+                    <h3>Basel III outputs</h3>
+                    <p>PD, LGD, EAD, and Expected Credit Loss formatted for banking conversations.</p>
+                </article>
+                <article class="feature-card">
+                    <h3>Explainable ensemble</h3>
+                    <p>RF + HistGBM + XGBoost with SHAP drivers — not a black-box decline.</p>
+                </article>
+                <article class="feature-card">
+                    <h3>Indonesian SLIK mapping</h3>
+                    <p>Scores aligned to the 1–5 collectibility language used in local supervision.</p>
+                </article>
+                <article class="feature-card">
+                    <h3>HKUST GenAI narratives</h3>
+                    <p>Bilingual farmer and loan-officer explanations via HKUST GenAI (with Gemini fallback).</p>
+                </article>
+                <article class="feature-card">
+                    <h3>Login-gated pilot</h3>
+                    <p>Public landing stays open; the full analyzer opens only after authorized sign-in.</p>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <section id="case-studies" class="section section-alt">
+        <div class="section-inner">
+            <h2 class="section-title">Pilot case studies</h2>
+            <p class="section-subtitle">Illustrative scenarios you can recreate in the live platform after login.</p>
+            <div class="case-grid">
+                <article class="case-card">
+                    <h3>West Java rice — working capital</h3>
+                    <p><strong>Challenge:</strong> Smallholders fail KUR screening without formal history.</p>
+                    <p><strong>Outcome:</strong> Satellite + cash-flow evidence pack in about one minute.</p>
+                </article>
+                <article class="case-card">
+                    <h3>Sumatra palm — portfolio triage</h3>
+                    <p><strong>Challenge:</strong> Branches score the same farm inconsistently.</p>
+                    <p><strong>Outcome:</strong> Consistent PD/LGD/EAD bands for risk prioritization.</p>
+                </article>
+                <article class="case-card">
+                    <h3>Central Java coffee — cooperative pack</h3>
+                    <p><strong>Challenge:</strong> Officers need something explainable at the village co-op.</p>
+                    <p><strong>Outcome:</strong> SHAP drivers and bilingual summaries for farmer conversations.</p>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <section id="indonesia" class="section">
+        <div class="section-inner two-col">
+            <div>
+                <h2>Built for Indonesia first</h2>
+                <p>
+                    Demo farms cover major production systems — rice, palm, coffee, cocoa, and dryland —
+                    from Java and Sumatra to Sulawesi, NTB, and Kalimantan.
+                </p>
+                <p>
+                    After login, open the platform, pick a demo farm, and run Analyze Credit Risk.
+                </p>
+            </div>
+            <div class="card region-card">
+                <h3>Demo farm regions</h3>
+                <ul class="region-list">
+                    <li>Indramayu — rice (West Java)</li>
+                    <li>Riau — palm oil (Sumatra)</li>
+                    <li>Temanggung — coffee (Central Java)</li>
+                    <li>South Sumatra — cocoa</li>
+                    <li>Lampung — coffee cooperative</li>
+                    <li>South Sulawesi — cocoa cluster</li>
+                    <li>Lombok — dryland rice (NTB)</li>
+                    <li>East Kalimantan — estate scale</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact" class="section demo-banner">
+        <div class="section-inner demo-banner-inner">
+            <div>
+                <h2>Enter the live pilot</h2>
+                <p>
+                    This public site is frontend-only. After Login, analysis calls the private
+                    Render backend (code stays private). First API call may take a minute while Render wakes.
+                </p>
+            </div>
+            <div style="display:flex; gap:12px; flex-wrap:wrap;">
+                <a class="btn btn-primary btn-large" href="/login">Pilot Login</a>
+                <a class="btn btn-secondary btn-large" href="mailto:hmchungah@connect.ust.hk?cc=owenchung03@gmail.com&subject=Agri-Accept%20Private%20Pilot%20Access%20Request" style="border-color:rgba(255,255,255,0.5);color:#fff;">Request Access</a>
+            </div>
+        </div>
+    </section>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div>
+                <strong>Agri-Accept</strong>
+                <p>Loan readiness assistant for Indonesian agriculture. Bank-ready evidence. The bank keeps the decision.</p>
+            </div>
+            <div class="footer-links">
+                <a href="/login">Pilot login</a>
+                <a href="/platform">Platform</a>
+                <a href="#about">About</a>
+            </div>
+        </div>
+        <p class="footer-copy">&copy; 2026 Agri-Accept · Public UI on Vercel · Private API on Render</p>
+    </footer>
+</body>
+</html>
