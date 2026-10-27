@@ -564,8 +564,9 @@ function addSatelliteMarkersToMap() {
 
 // ===== MAIN ANALYSIS FUNCTIONS =====
 
-async function waitForModelReady(maxWaitMs = 180000) {
+async function waitForModelReady(maxWaitMs = 45000) {
     const start = Date.now();
+    let lastStatus = null;
     while (Date.now() - start < maxWaitMs) {
         try {
             const response = await fetch(API_CONFIG.endpoints.modelStatus, {
@@ -578,18 +579,20 @@ async function waitForModelReady(maxWaitMs = 180000) {
                 throw new Error('Session expired — please sign in again.');
             }
             if (response.ok) {
-                const status = await response.json();
-                if (status.model_ready) {
-                    return status;
+                lastStatus = await response.json();
+                if (lastStatus.model_ready) {
+                    return lastStatus;
                 }
             }
         } catch (error) {
             if (error.message && error.message.indexOf('Session expired') !== -1) throw error;
             console.warn('Model status check failed:', error.message);
         }
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        await new Promise((resolve) => setTimeout(resolve, 1500));
     }
-    throw new Error('Model is still initializing on Render. Wait about a minute after login, then try Analyze again.');
+    // Proceed anyway — backend now serves Analyze with heuristic fallbacks while ML warms.
+    console.warn('Model still warming; continuing to Analyze with fallback scoring.');
+    return lastStatus || { model_ready: false, status: 'warming' };
 }
 
 async function analyzeWithRealNASAData() {
