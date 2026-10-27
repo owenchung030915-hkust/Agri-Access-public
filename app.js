@@ -595,13 +595,28 @@ async function waitForModelReady(maxWaitMs = 45000) {
     return lastStatus || { model_ready: false, status: 'warming' };
 }
 
+let _analyzeInFlight = false;
+
 async function analyzeWithRealNASAData() {
     console.log(' analyzeWithRealNASAData function called');
+
+    if (_analyzeInFlight) {
+        console.warn('Analyze already in progress — ignoring duplicate click');
+        return;
+    }
 
     if (typeof window.agriGetAccessToken === 'function' && !window.agriGetAccessToken()) {
         window.location.href = '/login.html?error=required';
         return;
     }
+
+    const button = document.getElementById('analyzeButton');
+    const loading = document.getElementById('mapLoading');
+    const loadingTitle = document.getElementById('loadingTitle');
+    const loadingStatus = document.getElementById('loadingStatus');
+
+    _analyzeInFlight = true;
+    if (button) button.disabled = true;
     
     // First test basic API connectivity + auth
     try {
@@ -612,6 +627,8 @@ async function analyzeWithRealNASAData() {
         });
         if (testResponse.status === 401) {
             if (typeof window.agriSetAccessToken === 'function') window.agriSetAccessToken('');
+            _analyzeInFlight = false;
+            if (button) button.disabled = false;
             window.location.href = '/login.html?error=required';
             return;
         }
@@ -622,18 +639,13 @@ async function analyzeWithRealNASAData() {
         console.log(' API test successful:', testResult);
     } catch (testError) {
         console.error(' API test failed:', testError);
+        _analyzeInFlight = false;
+        if (button) button.disabled = false;
         alert('API connection failed. The private Render backend may be waking up — wait ~60s and try again.\n\n' + testError.message);
         return;
     }
     
-    const button = document.getElementById('analyzeButton');
-    const loading = document.getElementById('mapLoading');
-    const loadingTitle = document.getElementById('loadingTitle');
-    const loadingStatus = document.getElementById('loadingStatus');
-    
     console.log(' Found elements:', { button, loading, loadingTitle, loadingStatus });
-    
-    button.disabled = true;
     
     // Show loading overlay
     loading.style.display = 'flex';
@@ -689,6 +701,8 @@ async function analyzeWithRealNASAData() {
 
         if (response.status === 401) {
             if (typeof window.agriSetAccessToken === 'function') window.agriSetAccessToken('');
+            _analyzeInFlight = false;
+            if (button) button.disabled = false;
             window.location.href = '/login.html?error=required';
             return;
         }
@@ -746,9 +760,12 @@ async function analyzeWithRealNASAData() {
         }
         
         // Hide loading overlay
-        loading.style.display = 'none';
-        loading.classList.remove('show');
-        button.disabled = false;
+        if (loading) {
+            loading.style.display = 'none';
+            loading.classList.remove('show');
+        }
+        if (button) button.disabled = false;
+        _analyzeInFlight = false;
         
     } catch (error) {
         console.error('Analysis error:', error);
@@ -765,9 +782,12 @@ async function analyzeWithRealNASAData() {
         showError(errorMessage);
         
         // Hide loading overlay
-        loading.style.display = 'none';
-        loading.classList.remove('show');
-        button.disabled = false;
+        if (loading) {
+            loading.style.display = 'none';
+            loading.classList.remove('show');
+        }
+        if (button) button.disabled = false;
+        _analyzeInFlight = false;
     }
 }
 
