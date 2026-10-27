@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Agri-Accept turns farm, satellite, and weather data into bank-ready credit evidence for Indonesian smallholders. 3rd place, APRU × Google Tech Policy Hackathon 2025.">
+    <meta name="description" content="Agri-Accept turns farm, satellite, and weather data into bank-ready evidence for Indonesian smallholders. 3rd place, APRU × Google Tech Policy Hackathon 2025.">
     <meta property="og:title" content="Agri-Accept | Making Every Farmer Loan-Ready">
-    <meta property="og:description" content="HKUST team · 3rd place at APRU × Google Tech Policy Hackathon 2025. Satellite credit intelligence for Indonesian agriculture.">
+    <meta property="og:description" content="Loan readiness assistant — not an AI lender. HKUST · 3rd place at APRU × Google Tech Policy Hackathon 2025.">
     <meta property="og:url" content="https://agri-access-public.vercel.app/">
     <meta property="og:type" content="website">
     <title>Agri-Accept | Making Every Farmer Loan-Ready</title>
@@ -20,8 +20,9 @@
                 <div class="nav-links">
                     <a href="#recognition">Recognition</a>
                     <a href="#problem">Problem</a>
-                    <a href="#how">How it works</a>
-                    <a href="#capabilities">Capabilities</a>
+                    <a href="#solution">Solution</a>
+                    <a href="#journey">Journey</a>
+                    <a href="#architecture">Architecture</a>
                     <a href="#indonesia">Indonesia</a>
                 </div>
                 <a class="nav-cta" href="/login.html">Login</a>
@@ -35,7 +36,7 @@
         <div class="hero-inner">
             <h1 class="hero-brand">Agri-Accept</h1>
             <p class="hero-lead">
-                Making every farmer loan-ready — satellite and weather evidence that banks can underwrite, while the bank keeps the decision.
+                Making every farmer loan-ready — turning farm, satellite, and weather data into bank-ready evidence.
             </p>
             <div class="hero-actions">
                 <a class="btn btn-primary" href="/login.html">Open pilot platform</a>
@@ -45,169 +46,262 @@
     </header>
 
     <section id="recognition" class="section recognition">
-        <div class="section-inner recognition-layout reveal">
-            <div>
+        <div class="section-inner split reveal">
+            <div class="split-copy">
                 <p class="section-kicker">Background</p>
-                <h2 class="section-title">3rd place at the APRU × Google Tech Policy Hackathon</h2>
-                <p>
-                    Agri-Accept began as <strong>AgriAccess</strong>, built by a Hong Kong University of Science and Technology (HKUST) student team for the
-                    <strong>APRU × Google Tech Policy Hackathon 2025</strong> finals at Google Bangkok.
+                <h2 class="section-title">3rd place at APRU × Google Tech Policy Hackathon</h2>
+                <div class="recognition-mark" aria-hidden="true">
+                    3<sup style="font-size:0.45em; vertical-align:super;">rd</sup>
+                    <span>of 40 universities · 15 economies</span>
+                </div>
+                <p style="margin-top:22px;">
+                    Agri-Accept began as <strong>Agri-Access</strong>, built by an HKUST undergraduate team for the
+                    <strong>APRU Tech Policy Hackathon</strong> (30 Sep – 2 Oct 2025) at Google Office, The Okura Prestige, Bangkok.
                 </p>
                 <p>
-                    From <strong>299 participants</strong> across 40 universities and 15 economies, 12 teams reached the finals.
-                    We placed <strong>third overall</strong> in the Agricultural Finance &amp; Credit Systems track — recognized for turning NASA-grade satellite signals into bank-readable risk parameters for Indonesian smallholders.
+                    We placed <strong>third</strong> for transforming Earth observation into sustainable financial loans for Indonesia’s
+                    <strong>$25B credit gap</strong> — helping invisible smallholders become investable, while the bank keeps the decision.
                 </p>
                 <p>
-                    The brief was tech policy with real inclusion stakes: close digital and credit gaps without replacing the lender.
-                    Our answer keeps approve / review / reject with the bank, and delivers the missing farm evidence file.
-                    Read the official write-up on
-                    <a class="inline" href="https://www.apru.org/news/students-across-asia-tackle-digital-challenges-in-apru-x-google-tech-policy-hackathon/" target="_blank" rel="noopener noreferrer">APRU’s announcement</a>
-                    and the
-                    <a class="inline" href="https://www.apru.org/event/apru-tech-policy-hackathon-2025/" target="_blank" rel="noopener noreferrer">finalist project abstracts</a>.
+                    Official coverage:
+                    <a class="inline" href="https://www.apru.org/news/students-across-asia-tackle-digital-challenges-in-apru-x-google-tech-policy-hackathon/" target="_blank" rel="noopener noreferrer">APRU announcement</a>
+                    ·
+                    <a class="inline" href="https://www.apru.org/event/apru-tech-policy-hackathon-2025/" target="_blank" rel="noopener noreferrer">Finalist abstracts</a>
                 </p>
                 <div class="recognition-meta">
                     <span>Google Bangkok finals</span>
-                    <span>Partnered with data.org &amp; NUS Fintech Lab</span>
-                    <span>HKUST team</span>
+                    <span>data.org &amp; NUS Fintech Lab</span>
+                    <span>Team Hong Kong · HKUST</span>
                 </div>
             </div>
-            <div class="recognition-mark" aria-hidden="true">
-                3<sup style="font-size:0.45em; vertical-align:super;">rd</sup>
-                <span>Place · 2025</span>
-            </div>
+            <div class="split-photo bangkok" role="img" aria-label="Bangkok skyline, host city of the APRU × Google finals"></div>
         </div>
     </section>
+
+    <div class="photo-band" aria-hidden="true">
+        <div class="photo-band-media photo-farmers"></div>
+        <div class="photo-band-inner">
+            <p>Helping invisible Indonesian smallholders become investable.</p>
+        </div>
+    </div>
 
     <section id="problem" class="section problem">
-        <div class="section-inner problem-grid reveal">
-            <div class="problem-copy">
+        <div class="section-inner split reverse reveal">
+            <div class="split-copy">
                 <p class="section-kicker">The gap</p>
-                <h2 class="section-title">Loan readiness assistant — not an AI lender</h2>
+                <h2 class="section-title">A $25 billion credit chasm in Indonesian agriculture</h2>
                 <p>
-                    Most Indonesian smallholders lack the 3–5 years of formal paperwork banks require.
-                    Without collateral or SLIK history, farms stay invisible to formal credit — and informal rates can climb toward 26%.
+                    Agriculture employs <strong>30%+</strong> of Indonesia’s workforce — yet
+                    <strong>29 million smallholders</strong> remain economically invisible, with
+                    <strong>72%</strong> below the poverty line (World Bank Group, 2020).
                 </p>
                 <p>
-                    Agri-Accept removes the blind spot: independent proof from Earth observation and weather,
-                    cash-flow coverage signals, Basel III risk parameters, and a clear fix list officers can discuss with farmers.
+                    Roughly <strong>20 million</strong> smallholders (~70%) cannot get formal loans;
+                    <strong>~90%</strong> lack collateral, and about <strong>20%</strong> turn to high-cost informal markets.
+                    KUR still asks for 3–5 years of paperwork most farms do not have.
                 </p>
                 <p>
-                    Banks and cooperatives keep the credit decision. We deliver the verified evidence pack.
+                    Yield prediction alone cannot underwrite a loan — household shocks, prices, and timing break that shortcut.
+                    We separate <strong>agronomic risk</strong>, <strong>cash-flow capacity</strong>, and <strong>credit risk</strong>.
                 </p>
+                <div class="metric-row">
+                    <div class="metric">
+                        <strong>$25B</strong>
+                        <span>Agri credit gap</span>
+                    </div>
+                    <div class="metric">
+                        <strong>29M</strong>
+                        <span>Invisible smallholders</span>
+                    </div>
+                    <div class="metric">
+                        <strong>72%</strong>
+                        <span>Below poverty line</span>
+                    </div>
+                </div>
             </div>
-            <aside class="problem-aside">
-                <div class="metric">
-                    <strong>$25B</strong>
-                    <span>Estimated agri credit gap we aim to shrink</span>
-                </div>
-                <div class="metric">
-                    <strong>~1 min</strong>
-                    <span>Time to assemble a pilot evidence pack</span>
-                </div>
-                <div class="metric">
-                    <strong>29M+</strong>
-                    <span>Indonesian farmers underserved by formal credit</span>
-                </div>
-            </aside>
+            <div class="split-photo rice-hands" role="img" aria-label="Rice harvest — Indonesian smallholder agriculture"></div>
         </div>
     </section>
 
-    <section id="how" class="section how">
+    <section id="solution" class="section solution">
         <div class="section-inner reveal">
-            <p class="section-kicker">Workflow</p>
-            <h2 class="section-title">How it works</h2>
-            <p class="section-subtitle">From farm coordinates to a lender-ready evidence pack — explainable end to end.</p>
-            <div class="steps">
-                <article class="step">
-                    <h3>Locate the farm</h3>
-                    <p>Pick an Indonesian demo farm or enter coordinates, crop, and loan details.</p>
+            <p class="section-kicker">What we are</p>
+            <h2 class="section-title">A loan readiness assistant — not an AI lender</h2>
+            <p class="section-subtitle">
+                The bank keeps approve / review / reject. We remove its blind spot with a verified, uncertainty-aware evidence package —
+                which loans fit, what’s missing, and how to improve.
+            </p>
+            <div class="role-grid">
+                <article class="role-item">
+                    <h3>For farmers</h3>
+                    <p>A clear path from “I need money” to a ready application — gap diagnosis, fix list, and a one-click evidence passport.</p>
                 </article>
-                <article class="step">
-                    <h3>Verify with EO + weather</h3>
-                    <p>Pull satellite and weather signals for vegetation health, climate stress, and operating risk.</p>
+                <article class="role-item">
+                    <h3>For bankers</h3>
+                    <p>Independent farm proof, cash-flow coverage bands, and explainable risk so officers can underwrite with confidence.</p>
                 </article>
-                <article class="step">
-                    <h3>Score with ensemble ML</h3>
-                    <p>Random Forest + HistGBM (+ XGBoost) produce credit score, SLIK band, and Basel III parameters.</p>
-                </article>
-                <article class="step">
-                    <h3>Explain &amp; decide</h3>
-                    <p>SHAP drivers and bilingual GenAI narratives help officers talk with farmers — the bank still decides.</p>
-                </article>
-            </div>
-        </div>
-    </section>
-
-    <section id="capabilities" class="section capabilities">
-        <div class="section-inner reveal">
-            <p class="section-kicker">Platform</p>
-            <h2 class="section-title">What the pilot delivers</h2>
-            <p class="section-subtitle">Built for banking conversations in Indonesia — not a black-box decline letter.</p>
-            <div class="cap-list">
-                <article class="cap-item">
-                    <h3>Satellite risk intelligence</h3>
-                    <p>Multi-source imagery and NASA Prithvi-style EO features for vegetation and land context at the plot.</p>
-                </article>
-                <article class="cap-item">
-                    <h3>Basel III outputs</h3>
-                    <p>PD, LGD, EAD, and Expected Credit Loss formatted for risk and credit committees.</p>
-                </article>
-                <article class="cap-item">
-                    <h3>Explainable ensemble</h3>
-                    <p>RF + HistGBM + XGBoost with SHAP drivers so every score has a readable story.</p>
-                </article>
-                <article class="cap-item">
-                    <h3>Indonesian SLIK mapping</h3>
-                    <p>Scores aligned to the 1–5 collectibility language used in local supervision.</p>
-                </article>
-                <article class="cap-item">
-                    <h3>HKUST GenAI narratives</h3>
-                    <p>Bilingual farmer and loan-officer explanations via HKUST GenAI, with Gemini fallback.</p>
-                </article>
-                <article class="cap-item">
-                    <h3>Login-gated pilot</h3>
-                    <p>Public landing stays open; the full analyzer and private API open only after authorized sign-in.</p>
+                <article class="role-item">
+                    <h3>For cooperatives</h3>
+                    <p>Shared readiness language across branches — education, advisory, and a file lenders can actually open.</p>
                 </article>
             </div>
         </div>
     </section>
 
-    <section id="cases" class="section cases">
+    <div class="photo-band" aria-hidden="true">
+        <div class="photo-band-media photo-aerial"></div>
+        <div class="photo-band-inner">
+            <p>Transforming Earth observation into sustainable financial loans.</p>
+        </div>
+    </div>
+
+    <section id="journey" class="section journey">
         <div class="section-inner reveal">
-            <p class="section-kicker">Use cases</p>
-            <h2 class="section-title">Pilot scenarios you can recreate</h2>
-            <p class="section-subtitle">Illustrative paths for banks and cooperatives after login.</p>
-            <div class="case-rail">
-                <article class="case">
-                    <p class="case-label">West Java · rice</p>
-                    <h3>Working capital without thick files</h3>
-                    <p>Smallholders fail KUR screening without formal history. Satellite + cash-flow evidence packs fill the gap in about a minute.</p>
+            <p class="section-kicker">Product flow</p>
+            <h2 class="section-title">From “I need money” to ready to apply</h2>
+            <p class="section-subtitle">
+                Six steps to a complete, verified file the lender can receive — aligned with KUR eligibility and real farm evidence.
+            </p>
+            <div class="journey-steps">
+                <article class="journey-step">
+                    <h3>KUR &amp; eligibility</h3>
+                    <p>Surface what fails and why against flagship loan rules.</p>
                 </article>
-                <article class="case">
-                    <p class="case-label">Sumatra · palm</p>
-                    <h3>Consistent portfolio triage</h3>
-                    <p>Branches score the same farm inconsistently. Shared PD/LGD/EAD bands give risk a common language.</p>
+                <article class="journey-step">
+                    <h3>Loan matching</h3>
+                    <p>Crop, amount, purpose, and maturity that fit the farm.</p>
                 </article>
-                <article class="case">
-                    <p class="case-label">Central Java · coffee</p>
-                    <h3>Explainable co-op packs</h3>
-                    <p>Officers need something discussable at the village co-op. SHAP drivers and bilingual summaries travel with the file.</p>
+                <article class="journey-step">
+                    <h3>Gap diagnosis</h3>
+                    <p>Score plus a concrete fix list — what’s missing before apply.</p>
+                </article>
+                <article class="journey-step">
+                    <h3>Evidence built</h3>
+                    <p>Satellite + cash-flow pack: independent, uncertainty-aware proof.</p>
+                </article>
+                <article class="journey-step">
+                    <h3>Readiness passport</h3>
+                    <p>One-click application pack the lender can open and review.</p>
+                </article>
+                <article class="journey-step">
+                    <h3>Bank decision</h3>
+                    <p>Human review remains — approve, review, or reject with conditions.</p>
                 </article>
             </div>
         </div>
     </section>
+
+    <section id="architecture" class="section architecture">
+        <div class="section-inner split reveal">
+            <div class="split-copy">
+                <p class="section-kicker">Architecture</p>
+                <h2 class="section-title">Independent data. Separated risk engines.</h2>
+                <p>
+                    From farm proof to credit decision support — Sentinel SAR/optical, BMKG / ECMWF / Earth-2 weather,
+                    SoilGrids, and cooperative records feed agronomic and cash-flow engines before any credit view.
+                </p>
+                <p>
+                    MVP ships <strong>explainable risk evidence</strong>. With labelled repayment data, the stack calibrates toward PD and expected loss —
+                    still under bank policy and human review.
+                </p>
+            </div>
+            <div class="split-photo satellite" role="img" aria-label="Earth observation view — satellite context for farm proof"></div>
+        </div>
+        <div class="section-inner reveal" style="margin-top:48px;">
+            <div class="arch-list">
+                <article class="arch-item">
+                    <h3>01 · Identify &amp; farm proof</h3>
+                    <p>eKYC, field polygon, crop planting, and loan purpose — the plot becomes machine-readable.</p>
+                </article>
+                <article class="arch-item">
+                    <h3>02 · Independent verification</h3>
+                    <p>Sentinel SAR/optical, weather ensembles, SoilGrids, and selective drone sensing.</p>
+                </article>
+                <article class="arch-item">
+                    <h3>03 · Agronomic risk engine</h3>
+                    <p>P10 / P50 / P90 yield, crop-failure probability, weather and soil stress, model uncertainty.</p>
+                </article>
+                <article class="arch-item">
+                    <h3>04 · Farm cash-flow engine</h3>
+                    <p>Yield × price minus costs → net cash-flow bands and repayment coverage.</p>
+                </article>
+                <article class="arch-item">
+                    <h3>05 · Credit decision support</h3>
+                    <p>Which loans fit, what’s missing, how to improve — Basel-style parameters for committees.</p>
+                </article>
+                <article class="arch-item">
+                    <h3>06 · Bank / licensed PKA</h3>
+                    <p>Bank policy + human review → approve / review / reject with amount and conditions.</p>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <div class="mosaic" aria-hidden="true">
+        <figure></figure>
+        <figure></figure>
+        <figure></figure>
+    </div>
+
+    <section id="abroad" class="section abroad">
+        <div class="section-inner reveal">
+            <p class="section-kicker">Precedent</p>
+            <h2 class="section-title">Spatial credit is proven elsewhere</h2>
+            <p class="section-subtitle">National and research schemes show EO-augmented underwriting is feasible — Indonesia’s rails are opening now.</p>
+            <div class="abroad-grid">
+                <article class="abroad-item">
+                    <h3>Kenya</h3>
+                    <p>Agri-fintech deployments have served 40,000+ smallholders with data-assisted credit (2025).</p>
+                </article>
+                <article class="abroad-item">
+                    <h3>Northern China</h3>
+                    <p>Research shows spatial variables improve credit-score accuracy beyond macroeconomic factors alone.</p>
+                </article>
+                <article class="abroad-item">
+                    <h3>India</h3>
+                    <p>Banking use cases cut credit assessment cycles from ~15 days to a few days with alternative data.</p>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" style="background:var(--sand); padding-bottom:48px;">
+        <div class="section-inner split reverse reveal">
+            <div class="split-copy">
+                <p class="section-kicker">Why now</p>
+                <h2 class="section-title">The market is open. The law paved the way.</h2>
+                <p>
+                    OJK reforms encourage alternative credit scoring and weather-linked data.
+                    Open EO and AI weather (Sentinel, Earth-2) lower the cost of farm proof.
+                    KUR and AUTP provide subsidized credit and insurance rails — capital is flowing into agriculture.
+                </p>
+                <p>
+                    Agri-Accept sits in that opening: <strong>data as collateral</strong> for farmers who lack assets, without replacing the lender.
+                </p>
+            </div>
+            <div class="split-photo banking" role="img" aria-label="Credit and documentation context for bank-ready evidence"></div>
+        </div>
+    </section>
+
+    <div class="photo-band" aria-hidden="true">
+        <div class="photo-band-media photo-terrace"></div>
+        <div class="photo-band-inner">
+            <p>Start in West Java. Scale toward national KUR distribution.</p>
+        </div>
+    </div>
 
     <section id="indonesia" class="section indonesia">
         <div class="section-inner indonesia-inner reveal">
-            <p class="section-kicker">Geography</p>
+            <p class="section-kicker">Roadmap</p>
             <h2 class="section-title">Built for Indonesia first</h2>
             <p>
-                Demo farms cover major production systems — rice, palm, coffee, cocoa, and dryland —
-                from Java and Sumatra to Sulawesi, NTB, and Kalimantan.
+                Pilot with a West Java cooperative to refine explainable models and unit economics,
+                then expand across provinces and integrate with state-owned banks supporting national KUR —
+                targeting the $25B gap.
             </p>
             <p>
-                After login, open the platform, pick a demo farm, and run Analyze Credit Risk.
-                The public site is frontend-only; scoring runs on a private Render API so model code stays closed.
+                Live demo farms span rice, palm, coffee, cocoa, and dryland systems across the archipelago.
+                After login, pick a farm and run Analyze Credit Risk on the private API.
             </p>
             <div class="region-tags">
                 <span>Indramayu rice</span>
@@ -222,18 +316,49 @@
         </div>
     </section>
 
+    <section id="team" class="section team">
+        <div class="section-inner reveal">
+            <p class="section-kicker">Who we are</p>
+            <h2 class="section-title">HKUST undergraduates bridging tech, policy, and finance</h2>
+            <p class="section-subtitle">Team Hong Kong — multidisciplinary by design.</p>
+            <div class="team-grid">
+                <div class="team-member">
+                    <strong>Owen Chung</strong>
+                    <span>Team leader · CS &amp; Economics</span>
+                </div>
+                <div class="team-member">
+                    <strong>Ian Chau</strong>
+                    <span>ML lead · Mathematics</span>
+                </div>
+                <div class="team-member">
+                    <strong>Andy Yau</strong>
+                    <span>Product &amp; UX · Global China Studies</span>
+                </div>
+                <div class="team-member">
+                    <strong>Annie Yin</strong>
+                    <span>Strategy &amp; policy · QSA</span>
+                </div>
+                <div class="team-member">
+                    <strong>Kevin Chin</strong>
+                    <span>Strategic analytics · CompEng</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <section id="contact" class="section cta">
         <div class="section-inner reveal">
             <p class="section-kicker">Live pilot</p>
             <h2 class="section-title">Enter the gated demo</h2>
             <p class="section-subtitle">
-                Sign in to run analyses against the private backend. First call may take a minute while Render wakes.
+                Sign in to run analyses against the private Render backend. First call may take a minute while the service wakes.
                 Request credentials if you do not have them yet.
             </p>
             <div class="cta-actions">
                 <a class="btn btn-dark" href="/login.html">Pilot login</a>
                 <a class="btn btn-outline-dark" href="mailto:hmchungah@connect.ust.hk?cc=owenchung03@gmail.com&subject=Agri-Accept%20Private%20Pilot%20Access%20Request">Request access</a>
             </div>
+            <p class="cta-closing">Let’s make the invisible, investable.</p>
         </div>
     </section>
 
@@ -241,7 +366,10 @@
         <div class="footer-inner">
             <div>
                 <strong>Agri-Accept</strong>
-                <p>Loan readiness for Indonesian agriculture. Bank-ready evidence. The bank keeps the decision. Born from 3rd place at APRU × Google Tech Policy Hackathon 2025.</p>
+                <p>
+                    Loan readiness for Indonesian agriculture. Bank-ready evidence. The bank keeps the decision.
+                    3rd place · APRU × Google Tech Policy Hackathon 2025 · HKUST.
+                </p>
             </div>
             <div class="footer-links">
                 <a href="/login.html">Pilot login</a>
@@ -276,7 +404,7 @@
                         io.unobserve(entry.target);
                     }
                 });
-            }, { threshold: 0.14, rootMargin: '0px 0px -8% 0px' });
+            }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
             nodes.forEach(function (el) { io.observe(el); });
         })();
     </script>
