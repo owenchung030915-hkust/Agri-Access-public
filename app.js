@@ -32,7 +32,9 @@ const API_CONFIG = {
         modelStatus: (typeof window.agriApiUrl === 'function' ? window.agriApiUrl('/api/model-status') : '/api/model-status'),
         shapViz: (typeof window.agriApiUrl === 'function' ? window.agriApiUrl('/api/shap-visualization') : '/api/shap-visualization'),
         test: (typeof window.agriApiUrl === 'function' ? window.agriApiUrl('/api/test') : '/api/test'),
-        proxyImage: (typeof window.agriApiUrl === 'function' ? window.agriApiUrl('/api/proxy-image') : '/api/proxy-image')
+        proxyImage: (typeof window.agriApiUrl === 'function' ? window.agriApiUrl('/api/proxy-image') : '/api/proxy-image'),
+        geocodeReverse: (typeof window.agriApiUrl === 'function' ? window.agriApiUrl('/api/geocode/reverse') : '/api/geocode/reverse'),
+        geocodeSearch: (typeof window.agriApiUrl === 'function' ? window.agriApiUrl('/api/geocode/search') : '/api/geocode/search')
     },
     timeout: 180000
 };
@@ -115,8 +117,14 @@ function initializeMap() {
     } catch (error) {
         console.error(' Error adding map tiles/controls:', error);
     }
+
+    // Click-to-drop farm pin → sync lat/lon → reverse-geocode → ready for Analyze
+    map.on('click', function (e) {
+        setFarmLocation(e.latlng.lat, e.latlng.lng, { reverseGeocode: true, pan: false });
+    });
     
     updateFarmMarker();
+    wireCoordinateInputs();
     
     console.log(' Map initialization complete');
     
@@ -136,6 +144,163 @@ function initializeMap() {
         }
     }, 200);
 }
+
+let _geocodeTimer = null;
+let _suppressInputSync = false;
+
+function wireCoordinateInputs() {
+    const latEl = document.getElementById('latitude');
+    const lonEl = document.getElementById('longitude');
+    if (!latEl || !lonEl || latEl.dataset.wired === '1') return;
+    latEl.dataset.wired = '1';
+
+    const onManualChange = () => {
+        if (_suppressInputSync) return;
+        const lat = parseFloat(latEl.value);
+        const lon = parseFloat(lonEl.value);
+        if (Number.isFinite(lat) && Number.isFinite(lon)) {
+            setFarmLocation(lat, lon, { reverseGeocode: true, pan: true, fromInputs: true });
+        }
+    };
+    latEl.addEventListener('change', onManualChange);
+    lonEl.addEventListener('change', onManualChange);
+
+    const searchInput = document.getElementById('placeSearch');
+    if (searchInput) {
+        searchInput.addEventListener('keydown', (ev) => {
+            if (ev.key === 'Enter') {
+                ev.preventDefault();
+                searchPlaceAndDrop();
+            }
+        });
+    }
+}
+
+/**
+ * Move the farm pin and form coordinates. Optionally reverse-geocode via Render API.
+ */
+function setFarmLocation(lat, lon, opts) {
+    opts = opts || {};
+    const roundedLat = Math.round(Number(lat) * 10000) / 10000;
+    const roundedLon = Math.round(Number(lon) * 10000) / 10000;
+    if (!Number.isFinite(roundedLat) || !Number.isFinite(roundedLon)) return;
+
+    _suppressInputSync = true;
+    const latEl = document.getElementById('latitude');
+    const lonEl = document.getElementById('longitude');
+    if (latEl) latEl.value = roundedLat;
+    if (lonEl) lonEl.value = roundedLon;
+    _suppressInputSync = false;
+
+    if (map && opts.pan) {
+        map.setView([roundedLat, roundedLon], Math.max(map.getZoom(), 12));
+    }
+
+    updateFarmMarker();
+    clearResults();
+
+    const hint = document.getElementById('mapPickHint');
+    if (hint) {
+        hint.textContent = `Pin at ${roundedLat}, ${roundedLon} — click Analyze Credit Risk when ready`;
+        hint.classList.add('is-active');
+    }
+
+    if (opts.reverseGeocode) {
+        scheduleReverseGeocode(roundedLat, roundedLon);
+    }
+}
+
+function scheduleReverseGeocode(lat, lon) {
+    if (_geocodeTimer) clearTimeout(_geocodeTimer);
+    _geocodeTimer = setTimeout(() => reverseGeocodeFarm(lat, lon), 350);
+}
+
+async function reverseGeocodeFarm(lat, lon) {
+    const label = document.getElementById('pickedPlaceLabel');
+    try {
+        const url = `${API_CONFIG.endpoints.geocodeReverse}?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`;
+        const res = await fetch(url, {
+            credentials: 'include',
+            headers: (typeof window.agriAuthHeaders === 'function') ? window.agriAuthHeaders() : undefined
+        });
+        if (res.status === 401) return;
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.success) {
+            if (label) {
+                label.hidden = false;
+                label.textContent = `Selected coordinates ${lat}, ${lon}`;
+            }
+            return;
+        }
+        if (label) {
+            label.hidden = false;
+            label.textContent = data.display_name || `${data.place}${data.region ? ', ' + data.region : ''}`;
+        }
+        const nameEl = document.getElementById('farmerName');
+        // Only auto-fill name when it still looks like a demo / default label
+        if (nameEl && data.suggested_name) {
+            const current = (nameEl.value || '').trim();
+            const looksDefault = !current || /^Ibu |^Pak |^Farm near /i.test(current);
+            if (looksDefault) nameEl.value = data.suggested_name;
+            updateFarmMarker();
+        }
+    } catch (err) {
+        console.warn('Reverse geocode failed:', err.message);
+    }
+}
+
+async function searchPlaceAndDrop() {
+    const input = document.getElementById('placeSearch');
+    const box = document.getElementById('placeSearchResults');
+    const q = (input && input.value || '').trim();
+    if (!q) return;
+    if (box) {
+        box.hidden = false;
+        box.innerHTML = '<div class="place-result-item">Searching…</div>';
+    }
+    try {
+        const url = `${API_CONFIG.endpoints.geocodeSearch}?q=${encodeURIComponent(q)}`;
+        const res = await fetch(url, {
+            credentials: 'include',
+            headers: (typeof window.agriAuthHeaders === 'function') ? window.agriAuthHeaders() : undefined
+        });
+        if (res.status === 401) {
+            window.location.href = '/login.html?error=required';
+            return;
+        }
+        const data = await res.json().catch(() => ({}));
+        const results = (data && data.results) || [];
+        if (!res.ok || !data.success || results.length === 0) {
+            if (box) box.innerHTML = '<div class="place-result-item">No places found in Indonesia. Try another name.</div>';
+            return;
+        }
+        if (box) {
+            box.innerHTML = results.map((r, i) => `
+                <button type="button" class="place-result-item" data-idx="${i}">
+                    ${r.display_name}
+                </button>
+            `).join('');
+            box.querySelectorAll('.place-result-item[data-idx]').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    const item = results[Number(btn.getAttribute('data-idx'))];
+                    if (!item) return;
+                    setFarmLocation(item.lat, item.lon, { reverseGeocode: true, pan: true });
+                    box.hidden = true;
+                    if (input) input.value = item.display_name.split(',')[0];
+                });
+            });
+        }
+        // Auto-drop on top hit for fast path
+        const top = results[0];
+        setFarmLocation(top.lat, top.lon, { reverseGeocode: true, pan: true });
+    } catch (err) {
+        if (box) box.innerHTML = `<div class="place-result-item">Search failed: ${err.message}</div>`;
+    }
+}
+
+// Expose for inline onclick
+window.searchPlaceAndDrop = searchPlaceAndDrop;
+window.setFarmLocation = setFarmLocation;
 
 // ===== DEMO LOCATIONS AND USER INTERFACE =====
 
@@ -214,28 +379,37 @@ function loadDemoLocation(farmer) {
     document.getElementById('loanPurpose').value = 'working_capital';
     document.getElementById('collateralType').value = 'none';
     
-    map.setView([demo.lat, demo.lon], 12);
-    updateFarmMarker();
-    clearResults();
+    setFarmLocation(demo.lat, demo.lon, { reverseGeocode: true, pan: true });
 }
 
 function updateFarmMarker() {
+    if (!map) return;
     const lat = parseFloat(document.getElementById('latitude').value);
     const lon = parseFloat(document.getElementById('longitude').value);
-    const name = document.getElementById('farmerName').value;
+    const name = document.getElementById('farmerName').value || 'Farm pin';
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
+
+    const label = String(name).replace(/[<>&"]/g, '');
     
     if (farmMarker) {
         map.removeLayer(farmMarker);
     }
     
     farmMarker = L.marker([lat, lon], {
+        draggable: true,
+        autoPan: true,
         icon: L.divIcon({
             className: 'farm-marker',
-            html: `<div style="background: #4CAF50; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${name}</div>`,
-            iconSize: [120, 30],
-            iconAnchor: [60, 15]
+            html: `<div style="background: #2E7D32; color: white; padding: 6px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.35); border: 2px solid #fff; max-width: 160px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">📍 ${label}</div>`,
+            iconSize: [150, 34],
+            iconAnchor: [75, 34]
         })
     }).addTo(map);
+
+    farmMarker.on('dragend', function () {
+        const pos = farmMarker.getLatLng();
+        setFarmLocation(pos.lat, pos.lng, { reverseGeocode: true, pan: false });
+    });
 }
 
 let coverageRectangles = [];

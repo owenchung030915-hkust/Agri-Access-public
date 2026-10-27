@@ -40,6 +40,16 @@
                 </div>
                 
                 <div class="form-group">
+                    <label for="placeSearch">Find a place (Indonesia)</label>
+                    <div class="place-search-row">
+                        <input type="text" id="placeSearch" placeholder="e.g. Indramayu, Temanggung, Riau…" autocomplete="off">
+                        <button type="button" class="demo-btn" id="placeSearchBtn" onclick="searchPlaceAndDrop()">Search</button>
+                    </div>
+                    <div id="placeSearchResults" class="place-search-results" hidden></div>
+                    <small style="color:#666;font-size:11px;">Or click the map to drop a pin — coordinates update automatically.</small>
+                </div>
+
+                <div class="form-group">
                     <label for="latitude">Latitude</label>
                     <input type="number" id="latitude" step="0.0001" placeholder="-6.7749" value="-6.7749">
                 </div>
@@ -48,6 +58,7 @@
                     <label for="longitude">Longitude</label>
                     <input type="number" id="longitude" step="0.0001" placeholder="107.1389" value="107.1389">
                 </div>
+                <div id="pickedPlaceLabel" class="picked-place-label" hidden></div>
                 
                 <div class="form-group">
                     <label for="farmSize">Farm Size (hectares)</label>
@@ -129,6 +140,9 @@
             <div class="map-container">
                 <div class="map-section">
                     <div id="map"></div>
+                    <div class="map-pick-hint" id="mapPickHint">
+                        Click the map to drop a farm pin · drag to fine-tune · then Analyze Credit Risk
+                    </div>
                     
                     <div class="loading-overlay" id="mapLoading" style="display: none;">
                         <div class="loading-content">
