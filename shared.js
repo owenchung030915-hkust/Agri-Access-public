@@ -2,8 +2,12 @@
 
 
 
-// Common API endpoint
-const API_BASE = '/api';
+// Common API helper — never declare global API_BASE (conflicts with app.js and kills Analyze)
+function sharedApiUrl(path) {
+    if (typeof window.agriApiUrl === 'function') return window.agriApiUrl(path);
+    const p = String(path || '');
+    return (p.startsWith('/') ? p : '/' + p);
+}
 
 // Common demo data
 const DEMO_LOCATIONS = {
@@ -75,11 +79,12 @@ function validateFarmerName(name) {
 // Common API functions
 async function analyzeCredit(farmData) {
     try {
-        const response = await fetch(`${API_BASE}/analyze`, {
+        const response = await fetch(sharedApiUrl('/api/analyze'), {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: (typeof window.agriAuthHeaders === 'function')
+                ? window.agriAuthHeaders()
+                : { 'Content-Type': 'application/json' },
+            credentials: 'include',
             body: JSON.stringify(farmData)
         });
 

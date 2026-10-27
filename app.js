@@ -21,12 +21,12 @@ let shapVisualization = null;
 // ===== CONFIGURATION =====
 // Same-host: AGRI_API_BASE = current origin (default via config.js)
 // Split deploy: set ?api=https://backend-host or window.AGRI_API_BASE
-const API_BASE = (typeof window.agriApiUrl === 'function')
-    ? window.AGRI_API_BASE
-    : window.location.origin;
-
+// NOTE: do not redeclare global `API_BASE` — shared.js historically used that name
+// and a duplicate `const API_BASE` SyntaxError prevents this whole file from loading.
 const API_CONFIG = {
-    baseUrl: API_BASE,
+    baseUrl: (typeof window.AGRI_API_BASE === 'string' && window.AGRI_API_BASE)
+        ? window.AGRI_API_BASE
+        : window.location.origin,
     endpoints: {
         analyze: (typeof window.agriApiUrl === 'function' ? window.agriApiUrl('/api/analyze') : '/api/analyze'),
         modelStatus: (typeof window.agriApiUrl === 'function' ? window.agriApiUrl('/api/model-status') : '/api/model-status'),
@@ -998,11 +998,10 @@ function displaySatelliteImagesGrid(browseImages) {
     }
     
     if (!browseImages || browseImages.length === 0) {
-        grid.innerHTML = `
-            <div style="text-align: center; color: #999; font-size: 12px; grid-column: 1 / -1; padding: 20px;">No satellite imagery available for this location.
-            </div>
-        `;
-        return;
+        // Client-side fallback tiles so the UI is never empty after a successful score
+        const lat = parseFloat(document.getElementById('latitude')?.value) || -6.33;
+        const lon = parseFloat(document.getElementById('longitude')?.value) || 108.32;
+        browseImages = buildLocalFallbackImagery(lat, lon);
     }
     
     // Color scheme for NASA CMR and working satellite services
@@ -1013,24 +1012,58 @@ function displaySatelliteImagesGrid(browseImages) {
         'World Imagery (ArcGIS)': '#2196F3', 
         'Google Satellite': '#FF9800'
     };
+
+    const esc = (s) => String(s || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
     
     grid.innerHTML = browseImages.map(image => {
         const color = colorMap[image.type] || '#666';
+        const proxied = proxyImageUrl(image.url);
+        const direct = image.url || '';
         return `
-            <div class="satellite-image-tile" style="border: 2px solid ${color}; border-radius: 8px; padding: 0; text-align: center; cursor: pointer; overflow: hidden; position: relative;" onclick="showImageModal('${image.type}', '${image.dataset}', '${image.resolution}', '${image.source}', '${proxyImageUrl(image.url)}')">
-                <img src="${proxyImageUrl(image.url)}" 
+            <div class="satellite-image-tile" style="border: 2px solid ${color}; border-radius: 8px; padding: 0; text-align: center; cursor: pointer; overflow: hidden; position: relative;" onclick="showImageModal('${esc(image.type)}', '${esc(image.dataset)}', '${esc(image.resolution)}', '${esc(image.source)}', '${esc(proxied)}')">
+                <img src="${proxied}" data-direct="${esc(direct)}"
                      style="width: 100%; height: 120px; object-fit: cover; border-radius: 6px 6px 0 0;" 
-                     onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
-                     alt="${image.type}">
+                     onerror="if(this.dataset.direct && this.src!==this.dataset.direct){this.src=this.dataset.direct;}else{this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='block';}"
+                     alt="${esc(image.type)}">
                 <div style="display: none; height: 120px; background: linear-gradient(135deg, ${color}22, ${color}11); line-height: 120px; font-size: 24px;"></div>
                 <div style="padding: 10px;">
-                    <div style="font-weight: bold; font-size: 12px; color: #333; margin-bottom: 4px;">${image.type}</div>
-                    <div style="font-size: 10px; color: #666;">${image.resolution} resolution</div>
-                    <div style="font-size: 10px; color: ${color}; margin-top: 4px;"> ${image.source}</div>
+                    <div style="font-weight: bold; font-size: 12px; color: #333; margin-bottom: 4px;">${esc(image.type)}</div>
+                    <div style="font-size: 10px; color: #666;">${esc(image.resolution)} resolution</div>
+                    <div style="font-size: 10px; color: ${color}; margin-top: 4px;"> ${esc(image.source)}</div>
                 </div>
             </div>
         `;
     }).join('');
+}
+
+function buildLocalFallbackImagery(lat, lon) {
+    const zoom = 8;
+    const x = Math.floor((lon + 180) / 360 * Math.pow(2, zoom));
+    const y = Math.floor((1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, zoom));
+    const date = '2024-09-01';
+    return [
+        {
+            type: 'World Imagery (ArcGIS)',
+            dataset: 'composite',
+            resolution: '1m-15m',
+            source: 'ArcGIS World Imagery',
+            url: `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${zoom}/${y}/${x}`
+        },
+        {
+            type: 'MODIS',
+            dataset: 'vegetation',
+            resolution: '250m',
+            source: 'NASA GIBS',
+            url: `https://gibs.earthdata.nasa.gov/wmts/epsg4326/best/MODIS_Terra_CorrectedReflectance_TrueColor/default/${date}/250m/${zoom}/${y}/${x}.jpg`
+        },
+        {
+            type: 'Google Satellite',
+            dataset: 'gee-processed',
+            resolution: '1m-15m',
+            source: 'Google tiles',
+            url: `https://mt1.google.com/vt/lyrs=s&x=${x}&y=${y}&z=${zoom}`
+        }
+    ];
 }
 
 function generateSatelliteImageURLs(lat, lon) {
@@ -1554,6 +1587,11 @@ window.addEventListener('error', function(event) {
     }
 });
 
+// Expose Analyze for inline onclick + programmatic hooks
+window.analyzeWithRealNASAData = analyzeWithRealNASAData;
+window.displaySatelliteImagesGrid = displaySatelliteImagesGrid;
+window.loadDemoLocation = loadDemoLocation;
+
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', function() {
     console.log(' DOM Content Loaded - initializing app...');
@@ -1565,6 +1603,15 @@ document.addEventListener('DOMContentLoaded', function() {
         loadDemoLocation('siti');
         initializeVisualizationComponents();
         window.appInitialized = true;
+
+        const btn = document.getElementById('analyzeButton');
+        if (btn && !btn.dataset.wired) {
+            btn.dataset.wired = '1';
+            btn.addEventListener('click', function (ev) {
+                ev.preventDefault();
+                analyzeWithRealNASAData();
+            });
+        }
     }, 100);
     
     document.addEventListener('keydown', function(event) {
