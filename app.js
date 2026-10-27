@@ -617,6 +617,15 @@ async function analyzeWithRealNASAData() {
 
     _analyzeInFlight = true;
     if (button) button.disabled = true;
+
+    const finishAnalyze = () => {
+        _analyzeInFlight = false;
+        if (button) button.disabled = false;
+        if (loading) {
+            loading.style.display = 'none';
+            loading.classList.remove('show');
+        }
+    };
     
     // First test basic API connectivity + auth
     try {
@@ -627,8 +636,7 @@ async function analyzeWithRealNASAData() {
         });
         if (testResponse.status === 401) {
             if (typeof window.agriSetAccessToken === 'function') window.agriSetAccessToken('');
-            _analyzeInFlight = false;
-            if (button) button.disabled = false;
+            finishAnalyze();
             window.location.href = '/login.html?error=required';
             return;
         }
@@ -639,8 +647,7 @@ async function analyzeWithRealNASAData() {
         console.log(' API test successful:', testResult);
     } catch (testError) {
         console.error(' API test failed:', testError);
-        _analyzeInFlight = false;
-        if (button) button.disabled = false;
+        finishAnalyze();
         alert('API connection failed. The private Render backend may be waking up — wait ~60s and try again.\n\n' + testError.message);
         return;
     }
@@ -648,8 +655,10 @@ async function analyzeWithRealNASAData() {
     console.log(' Found elements:', { button, loading, loadingTitle, loadingStatus });
     
     // Show loading overlay
-    loading.style.display = 'flex';
-    loading.classList.add('show');
+    if (loading) {
+        loading.style.display = 'flex';
+        loading.classList.add('show');
+    }
     
     clearResults();
     
@@ -701,8 +710,7 @@ async function analyzeWithRealNASAData() {
 
         if (response.status === 401) {
             if (typeof window.agriSetAccessToken === 'function') window.agriSetAccessToken('');
-            _analyzeInFlight = false;
-            if (button) button.disabled = false;
+            finishAnalyze();
             window.location.href = '/login.html?error=required';
             return;
         }
@@ -727,21 +735,21 @@ async function analyzeWithRealNASAData() {
         // Update workflow status progression
         updateWorkflowStatus(2, 'completed');
         updateWorkflowStatus(3, 'active');
-        loadingStatus.textContent = 'Calculating Basel III risk parameters...';
+        if (loadingStatus) loadingStatus.textContent = 'Calculating Basel III risk parameters...';
         
-        await new Promise(resolve =>setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 200));
         
         updateWorkflowStatus(3, 'completed');
         updateWorkflowStatus(4, 'active');
-        loadingStatus.textContent = 'Computing PD, LGD, EAD and credit score...';
+        if (loadingStatus) loadingStatus.textContent = 'Computing PD, LGD, EAD and credit score...';
         
-        await new Promise(resolve =>setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 200));
         
         updateWorkflowStatus(4, 'completed');
         updateWorkflowStatus(5, 'active');
-        loadingStatus.textContent = 'Generating SHAP explanations...';
+        if (loadingStatus) loadingStatus.textContent = 'Generating SHAP explanations...';
         
-        await new Promise(resolve =>setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 200));
         
         updateWorkflowStatus(5, 'completed');
         
@@ -750,6 +758,8 @@ async function analyzeWithRealNASAData() {
             displayAnalysisResults(result);
         } catch (displayError) {
             console.error('Error in displayAnalysisResults:', displayError);
+            // Still force-show satellite tiles if we have them
+            try { displaySatelliteImagesGrid(result.browseImages || []); } catch (e) { /* ignore */ }
         }
         
         // Add bounding boxes to map
@@ -758,14 +768,8 @@ async function analyzeWithRealNASAData() {
         } catch (mapError) {
             console.error('Error in addDataCoverageBounds:', mapError);
         }
-        
-        // Hide loading overlay
-        if (loading) {
-            loading.style.display = 'none';
-            loading.classList.remove('show');
-        }
-        if (button) button.disabled = false;
-        _analyzeInFlight = false;
+
+        finishAnalyze();
         
     } catch (error) {
         console.error('Analysis error:', error);
@@ -773,21 +777,14 @@ async function analyzeWithRealNASAData() {
         let errorMessage = 'Error during Basel III analysis: ';
         if (error.name === 'AbortError') {
             errorMessage += 'Request timed out. Please try again.';
-        } else if (error.message.includes('fetch')) {
+        } else if ((error.message || '').includes('fetch')) {
             errorMessage += 'Unable to connect to Basel III API. Please check if the server is running.';
         } else {
             errorMessage += error.message;
         }
         
         showError(errorMessage);
-        
-        // Hide loading overlay
-        if (loading) {
-            loading.style.display = 'none';
-            loading.classList.remove('show');
-        }
-        if (button) button.disabled = false;
-        _analyzeInFlight = false;
+        finishAnalyze();
     }
 }
 
