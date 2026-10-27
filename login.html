@@ -138,8 +138,13 @@
                     window.agriSetAccessToken(data.access_token);
                 }
                 if (data.api_base) {
-                    try { localStorage.setItem('agri_api_base', data.api_base); } catch (e) {}
-                    window.AGRI_API_BASE = data.api_base;
+                    let apiBase = String(data.api_base).replace(/\/$/, '');
+                    // Avoid mixed-content blocks when Vercel (https) stores an http API base
+                    if (apiBase.indexOf('http://') === 0) {
+                        apiBase = 'https://' + apiBase.slice('http://'.length);
+                    }
+                    try { localStorage.setItem('agri_api_base', apiBase); } catch (e) {}
+                    window.AGRI_API_BASE = apiBase;
                 }
                 // Real file path (Vercel rewrites for /platform are unreliable)
                 window.location.replace('/platform.html');

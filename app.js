@@ -398,6 +398,11 @@ async function waitForModelReady(maxWaitMs = 180000) {
                 credentials: 'include',
                 headers: (typeof window.agriAuthHeaders === 'function') ? window.agriAuthHeaders() : undefined
             });
+            if (response.status === 401) {
+                if (typeof window.agriSetAccessToken === 'function') window.agriSetAccessToken('');
+                window.location.href = '/login.html?error=required';
+                throw new Error('Session expired — please sign in again.');
+            }
             if (response.ok) {
                 const status = await response.json();
                 if (status.model_ready) {
@@ -405,28 +410,42 @@ async function waitForModelReady(maxWaitMs = 180000) {
                 }
             }
         } catch (error) {
+            if (error.message && error.message.indexOf('Session expired') !== -1) throw error;
             console.warn('Model status check failed:', error.message);
         }
         await new Promise((resolve) => setTimeout(resolve, 2000));
     }
-    throw new Error('Model is still initializing. Please wait a moment and try again.');
+    throw new Error('Model is still initializing on Render. Wait about a minute after login, then try Analyze again.');
 }
 
 async function analyzeWithRealNASAData() {
     console.log(' analyzeWithRealNASAData function called');
+
+    if (typeof window.agriGetAccessToken === 'function' && !window.agriGetAccessToken()) {
+        window.location.href = '/login.html?error=required';
+        return;
+    }
     
-    // First test basic API connectivity
+    // First test basic API connectivity + auth
     try {
         console.log(' Testing basic API connectivity...');
         const testResponse = await fetch(API_CONFIG.endpoints.test, {
             credentials: 'include',
             headers: (typeof window.agriAuthHeaders === 'function') ? window.agriAuthHeaders() : undefined
         });
+        if (testResponse.status === 401) {
+            if (typeof window.agriSetAccessToken === 'function') window.agriSetAccessToken('');
+            window.location.href = '/login.html?error=required';
+            return;
+        }
+        if (!testResponse.ok) {
+            throw new Error(`API test HTTP ${testResponse.status}`);
+        }
         const testResult = await testResponse.json();
         console.log(' API test successful:', testResult);
     } catch (testError) {
         console.error(' API test failed:', testError);
-        alert('API connection test failed: ' + testError.message);
+        alert('API connection failed. The private Render backend may be waking up — wait ~60s and try again.\n\n' + testError.message);
         return;
     }
     
