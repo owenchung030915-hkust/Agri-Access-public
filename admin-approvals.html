@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Agri-Accept | Approvals</title>
+    <link rel="stylesheet" href="landing.css">
+    <style>
+        .wrap {
+            max-width: 880px;
+            margin: 0 auto;
+            padding: 40px 24px 80px;
+        }
+        h1 {
+            font-family: var(--font-display);
+            font-size: 1.8rem;
+            color: var(--ink);
+            margin-bottom: 8px;
+        }
+        .lead { color: var(--muted); margin-bottom: 24px; }
+        .status {
+            padding: 10px 12px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            display: none;
+        }
+        .status.show { display: block; }
+        .status.err { background: #fdecea; color: #b71c1c; border: 1px solid #f5c6cb; }
+        .status.ok { background: var(--mist); color: var(--forest); border: 1px solid var(--line); }
+        .card {
+            background: rgba(255,252,247,0.92);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 16px 18px;
+            margin-bottom: 12px;
+        }
+        .card h3 {
+            font-family: var(--font-display);
+            font-size: 1.1rem;
+            margin-bottom: 6px;
+        }
+        .meta { color: var(--muted); font-size: 0.9rem; line-height: 1.45; }
+        .actions { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
+        .actions button {
+            border: none;
+            border-radius: 999px;
+            padding: 8px 14px;
+            font-weight: 700;
+            font-family: var(--font-body);
+            cursor: pointer;
+        }
+        .approve { background: var(--forest); color: #fff; }
+        .reject { background: transparent; color: var(--forest); border: 1px solid var(--line) !important; }
+        .section-title {
+            font-family: var(--font-display);
+            margin: 28px 0 12px;
+            color: var(--forest);
+        }
+        .nav-row { margin-bottom: 18px; }
+        .nav-row a { color: var(--forest); font-weight: 600; margin-right: 14px; }
+        .empty { color: var(--muted); font-size: 0.95rem; }
+    </style>
+</head>
+<body style="background: var(--sand);">
+    <nav class="site-nav">
+        <div class="nav-inner">
+            <a class="brand" href="/">Agri-Accept</a>
+            <div class="nav-right">
+                <a class="nav-cta" href="/platform.html">Platform</a>
+            </div>
+        </div>
+    </nav>
+    <div class="wrap">
+        <div class="nav-row">
+            <a href="/platform.html">← Platform</a>
+            <a href="/login.html">Login</a>
+        </div>
+        <h1>Pilot access approvals</h1>
+        <p class="lead">Review signup requests. Only the admin account can approve or reject.</p>
+        <div class="status err" id="msgErr"></div>
+        <div class="status ok" id="msgOk"></div>
+        <h2 class="section-title">Pending</h2>
+        <div id="pendingList" class="empty">Loading…</div>
+        <h2 class="section-title">Approved</h2>
+        <div id="approvedList" class="empty">—</div>
+        <h2 class="section-title">Rejected</h2>
+        <div id="rejectedList" class="empty">—</div>
+    </div>
+    <script src="config.js"></script>
+    <script>
+        function show(el, text) {
+            el.textContent = text;
+            el.classList.add('show');
+        }
+        function card(user, canReview) {
+            const div = document.createElement('div');
+            div.className = 'card';
+            div.innerHTML = `
+                <h3>${escapeHtml(user.name || user.email)}</h3>
+                <div class="meta">
+                    <div><strong>${escapeHtml(user.email)}</strong></div>
+                    <div>${escapeHtml(user.organization || 'No organization')}</div>
+                    <div>${escapeHtml(user.reason || 'No reason given')}</div>
+                    <div>Requested: ${escapeHtml(user.created_at || '—')}</div>
+                    ${user.reviewed_at ? `<div>Reviewed: ${escapeHtml(user.reviewed_at)} by ${escapeHtml(user.reviewed_by || '')}</div>` : ''}
+                </div>
+            `;
+            if (canReview) {
+                const actions = document.createElement('div');
+                actions.className = 'actions';
+                const a = document.createElement('button');
+                a.className = 'approve';
+                a.textContent = 'Approve';
+                a.onclick = () => review(user.id, 'approve');
+                const r = document.createElement('button');
+                r.className = 'reject';
+                r.textContent = 'Reject';
+                r.onclick = () => review(user.id, 'reject');
+                actions.appendChild(a);
+                actions.appendChild(r);
+                div.appendChild(actions);
+            }
+            return div;
+        }
+        function escapeHtml(s) {
+            return String(s || '')
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+        function renderList(id, users, canReview) {
+            const box = document.getElementById(id);
+            box.innerHTML = '';
+            if (!users || !users.length) {
+                box.className = 'empty';
+                box.textContent = 'None';
+                return;
+            }
+            box.className = '';
+            users.forEach((u) => box.appendChild(card(u, canReview)));
+        }
+        async function load() {
+            const err = document.getElementById('msgErr');
+            err.classList.remove('show');
+            const url = window.agriApiUrl('/api/admin/pending');
+            const res = await fetch(url, {
+                credentials: 'include',
+                headers: window.agriAuthHeaders ? window.agriAuthHeaders() : undefined
+            });
+            if (res.status === 401) {
+                window.location.href = '/login.html?error=required&next=admin-approvals.html';
+                return;
+            }
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok || !data.success) {
+                show(err, data.error || 'Could not load approvals. Log in as the admin account.');
+                document.getElementById('pendingList').textContent = 'Unavailable';
+                return;
+            }
+            renderList('pendingList', data.pending, true);
+            renderList('approvedList', data.approved, false);
+            renderList('rejectedList', data.rejected, false);
+        }
+        async function review(userId, action) {
+            const err = document.getElementById('msgErr');
+            const ok = document.getElementById('msgOk');
+            err.classList.remove('show');
+            ok.classList.remove('show');
+            const res = await fetch(window.agriApiUrl('/api/admin/review'), {
+                method: 'POST',
+                credentials: 'include',
+                headers: window.agriAuthHeaders ? window.agriAuthHeaders() : { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: userId, action })
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok || !data.success) {
+                show(err, data.error || 'Review failed');
+                return;
+            }
+            show(ok, `${action === 'approve' ? 'Approved' : 'Rejected'} ${data.user.email}`);
+            load();
+        }
+        load();
+    </script>
+</body>
+</html>

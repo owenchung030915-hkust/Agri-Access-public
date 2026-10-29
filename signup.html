@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Agri-Accept | Request Pilot Access</title>
+    <link rel="stylesheet" href="landing.css">
+    <style>
+        .login-wrap {
+            min-height: calc(100vh - 120px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 48px 24px;
+            background:
+                radial-gradient(ellipse 70% 50% at 15% 0%, rgba(47, 143, 99, 0.12), transparent 55%),
+                var(--sand);
+        }
+        .login-card {
+            width: 100%;
+            max-width: 480px;
+            background: var(--white);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            box-shadow: 0 10px 36px rgba(19, 32, 25, 0.08);
+            padding: 32px 28px;
+        }
+        .login-card h1 {
+            font-family: var(--font-display);
+            font-size: 1.55rem;
+            margin-bottom: 8px;
+            color: var(--ink);
+        }
+        .login-card p {
+            color: var(--muted);
+            margin-bottom: 18px;
+            font-size: 0.95rem;
+        }
+        .login-card label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--forest);
+            font-size: 0.9rem;
+        }
+        .login-card input, .login-card textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            margin-bottom: 14px;
+            font-size: 1rem;
+            font-family: var(--font-body);
+            background: var(--white);
+            color: var(--ink);
+        }
+        .login-card textarea { min-height: 88px; resize: vertical; }
+        .login-card input:focus, .login-card textarea:focus {
+            outline: 2px solid var(--leaf);
+            border-color: var(--forest);
+        }
+        .login-error, .login-ok {
+            border-radius: 6px;
+            padding: 10px 12px;
+            margin-bottom: 14px;
+            font-size: 0.9rem;
+            display: none;
+        }
+        .login-error {
+            background: #fdecea;
+            color: #b71c1c;
+            border: 1px solid #f5c6cb;
+        }
+        .login-ok {
+            background: var(--mist);
+            color: var(--forest);
+            border: 1px solid var(--line);
+        }
+        .login-error.show, .login-ok.show { display: block; }
+        .login-card button {
+            width: 100%;
+            border: none;
+            cursor: pointer;
+            background: var(--forest);
+            color: #fff;
+            font-weight: 700;
+            font-family: var(--font-body);
+            padding: 12px 16px;
+            border-radius: 999px;
+            font-size: 1rem;
+        }
+        .login-card button:hover { background: var(--forest-mid); }
+        .login-card button:disabled { opacity: 0.65; cursor: wait; }
+        .login-card .back {
+            display: inline-block;
+            margin-top: 16px;
+            color: var(--forest);
+            font-size: 0.9rem;
+            margin-right: 14px;
+        }
+        .hint { font-size: 0.82rem; color: var(--muted); margin: -8px 0 14px; }
+    </style>
+</head>
+<body>
+    <nav class="site-nav">
+        <div class="nav-inner">
+            <a class="brand" href="/">Agri-Accept</a>
+        </div>
+    </nav>
+    <div class="login-wrap">
+        <form class="login-card" id="signupForm">
+            <h1>Request pilot access</h1>
+            <p>
+                Create an account to use the Agri-Accept analyzer.
+                New signups stay <strong>pending</strong> until Owen approves them
+                (<a href="mailto:owenchung03@gmail.com">owenchung03@gmail.com</a>).
+            </p>
+            <div class="login-error" id="signupError"></div>
+            <div class="login-ok" id="signupOk"></div>
+            <label for="name">Full name</label>
+            <input id="name" name="name" type="text" autocomplete="name" required placeholder="Your name">
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" autocomplete="email" required placeholder="you@example.com">
+            <label for="organization">Organization</label>
+            <input id="organization" name="organization" type="text" autocomplete="organization" placeholder="Bank, co-op, university…">
+            <label for="reason">Why do you need access?</label>
+            <textarea id="reason" name="reason" placeholder="Short note for the admin review"></textarea>
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" autocomplete="new-password" required minlength="8" placeholder="At least 8 characters">
+            <p class="hint">After approval, use this email and password on the login page.</p>
+            <button type="submit" id="signupBtn">Submit for approval</button>
+            <a class="back" href="/login.html">Already have access? Log in</a>
+            <a class="back" href="/">Back to home</a>
+        </form>
+    </div>
+    <script src="config.js"></script>
+    <script>
+        document.getElementById('signupForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const err = document.getElementById('signupError');
+            const ok = document.getElementById('signupOk');
+            const btn = document.getElementById('signupBtn');
+            err.classList.remove('show');
+            ok.classList.remove('show');
+            btn.disabled = true;
+            btn.textContent = 'Submitting…';
+            const payload = {
+                name: document.getElementById('name').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                organization: document.getElementById('organization').value.trim(),
+                reason: document.getElementById('reason').value.trim(),
+                password: document.getElementById('password').value
+            };
+            const url = (typeof window.agriApiUrl === 'function')
+                ? window.agriApiUrl('/api/signup')
+                : '/api/signup';
+            try {
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || !data.success) {
+                    err.textContent = data.error || 'Signup failed.';
+                    err.classList.add('show');
+                    return;
+                }
+                ok.textContent = data.message || 'Request submitted. Pending admin approval.';
+                ok.classList.add('show');
+                document.getElementById('signupForm').querySelectorAll('input,textarea,button').forEach((el) => {
+                    if (el.id !== 'signupBtn') el.disabled = true;
+                });
+                btn.textContent = 'Submitted';
+            } catch (error) {
+                err.textContent = 'Could not reach the signup service. Is the backend awake?';
+                err.classList.add('show');
+                btn.disabled = false;
+                btn.textContent = 'Submit for approval';
+            }
+        });
+    </script>
+</body>
+</html>

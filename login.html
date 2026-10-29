@@ -107,6 +107,7 @@
             <label for="password">Password</label>
             <input id="password" name="password" type="password" autocomplete="current-password" required placeholder="Enter password">
             <button type="submit">Sign in to full platform</button>
+            <a class="back" href="/signup.html">Need access? Sign up</a>
             <a class="back" href="/">Back to home</a>
         </form>
     </div>
@@ -116,7 +117,11 @@
         const err = params.get('error');
         if (err) {
             const box = document.getElementById('loginError');
-            box.textContent = err === 'invalid' ? 'Incorrect email or password.' : 'Login required to continue.';
+            box.textContent = err === 'invalid'
+                ? 'Incorrect email or password.'
+                : err === 'pending'
+                    ? 'Your signup is still pending admin approval.'
+                    : 'Login required to continue.';
             box.classList.add('show');
         }
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
