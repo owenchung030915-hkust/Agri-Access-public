@@ -42,59 +42,116 @@ class FarmerExplanationComponent {
     async generateExplanation() {
         if (!this.creditData) {
             console.warn(' No credit data available for explanation');
-            return this.getEmptyExplanation();
+            return null;
         }
-        
+
         console.log(' Credit data:', this.creditData);
         const translator = new LLMTranslationEngine();
         const farmContext = this.extractFarmContext();
         console.log(' Farm context:', farmContext);
-        
+
         try {
             const explanation = await translator.translateCreditAnalysis(
-                this.creditData, 
-                this.language, 
+                this.creditData,
+                this.language,
                 farmContext,
                 this.shapData,
                 this.weatherData,
                 this.satelliteData
             );
             console.log(' Translator returned:', explanation);
-            return explanation;
+            return this.normalizeExplanation(explanation, farmContext);
         } catch (error) {
             console.error(' Error generating explanation:', error);
-            console.error(' Error stack:', error.stack);
-            return this.getEmptyExplanation();
+            return this.normalizeExplanation(
+                translator.generateRuleBasedExplanation(this.creditData, this.language, farmContext),
+                farmContext
+            );
         }
+    }
+
+    normalizeExplanation(explanation, farmContext) {
+        const creditScore = this.extractCreditScore();
+        const fallbackRecs = this.generateRecommendations(this.language, farmContext || this.extractFarmContext(), creditScore);
+        if (!explanation || typeof explanation !== 'object') {
+            return {
+                summary: '',
+                riskAssessment: this.getCreditDescription(creditScore, this.language),
+                recommendations: fallbackRecs
+            };
+        }
+        const recs = this.normalizeRecommendations(explanation.recommendations, fallbackRecs);
+        return {
+            summary: explanation.summary || '',
+            riskAssessment: explanation.riskAssessment || explanation.credit_explanation || this.getCreditDescription(creditScore, this.language),
+            recommendations: recs
+        };
+    }
+
+    normalizeRecommendations(recs, fallbackRecs) {
+        if (!Array.isArray(recs) || recs.length === 0) return fallbackRecs;
+        return recs.map((rec, i) => {
+            if (typeof rec === 'string') {
+                return {
+                    icon: '',
+                    title: rec,
+                    description: rec,
+                    priority: i === 0 ? 'high' : 'medium',
+                    priorityText: this.getPriorityText(i === 0 ? 'high' : 'medium'),
+                    timeline: this.language === 'id' ? 'Segera' : 'Soon'
+                };
+            }
+            const priority = rec.priority || 'medium';
+            return {
+                icon: rec.icon || '',
+                title: rec.title || rec.name || (this.language === 'id' ? 'Saran' : 'Recommendation'),
+                description: rec.description || rec.detail || rec.impact || '',
+                priority,
+                priorityText: rec.priorityText || this.getPriorityText(priority),
+                timeline: rec.timeline || (this.language === 'id' ? 'Segera' : 'Soon')
+            };
+        });
     }
     
     extractFarmContext() {
         const farmSize = this.extractFarmSize();
         const location = this.extractLocation();
         const cropHealth = this.extractCropHealth();
-        
+        const cropEl = document.getElementById('primaryCrop');
+        const nameEl = document.getElementById('farmerName');
+
         return {
             farmSize,
             location,
             cropHealth,
+            crop: cropEl ? cropEl.value : '',
+            farmerName: nameEl ? nameEl.value : '',
             hasWeatherData: !!this.weatherData,
             hasSatelliteData: !!this.satelliteData
         };
     }
     
     extractFarmSize() {
-        if (!this.shapData || !this.shapData.features) return 'unknown';
-        
-        const sizeFeature = this.shapData.features.find(f =>f.feature_name && f.feature_name.includes('farm_size')
-        );
-        
-        if (sizeFeature && sizeFeature.value >0) {
-            if (sizeFeature.value < 1) return 'small'; // < 1 hectare
-            if (sizeFeature.value < 5) return 'medium'; // 1-5 hectares
-            return 'large'; // >5 hectares
+        const sizeEl = document.getElementById('farmSize');
+        const hectares = sizeEl ? parseFloat(sizeEl.value) : NaN;
+        if (Number.isFinite(hectares) && hectares > 0) {
+            if (hectares < 1) return 'small';
+            if (hectares < 5) return 'medium';
+            return 'large';
         }
-        
-        return 'medium'; // Default assumption
+
+        if (this.shapData && this.shapData.features) {
+            const sizeFeature = this.shapData.features.find(f =>
+                f.feature_name && f.feature_name.includes('farm_size')
+            );
+            if (sizeFeature && sizeFeature.value > 0) {
+                if (sizeFeature.value < 1) return 'small';
+                if (sizeFeature.value < 5) return 'medium';
+                return 'large';
+            }
+        }
+
+        return 'medium';
     }
     
     extractLocation() {
@@ -175,19 +232,20 @@ class FarmerExplanationComponent {
             `;
             return;
         }
-        
-        // Show loading state first
+
+        const renderToken = (this._renderToken = (this._renderToken || 0) + 1);
         this.showLoadingState();
-        
+
         try {
-            // Generate explanation asynchronously
             const explanation = await this.generateExplanation();
+            if (renderToken !== this._renderToken) return;
             console.log(' Generated explanation:', explanation);
             this.renderFarmerInterface(explanation);
         } catch (error) {
             console.error(' Error rendering farmer explanation:', error);
-            console.error(' Error details:', error.stack);
-            this.showErrorState();
+            if (renderToken !== this._renderToken) return;
+            // Still show local recommendations instead of a blank loader
+            this.renderFarmerInterface(this.normalizeExplanation(null, this.extractFarmContext()));
         }
     }
     
@@ -279,13 +337,29 @@ class FarmerExplanationComponent {
         }
     }
     
+    farmSizeLabel(farmContext, language) {
+        const size = farmContext.farmSize || 'medium';
+        if (language === 'id') {
+            if (size === 'small') return 'kebun kecil';
+            if (size === 'large') return 'kebun besar';
+            return 'kebun sedang';
+        }
+        if (size === 'small') return 'small';
+        if (size === 'large') return 'large';
+        return 'medium';
+    }
+
     generateIndonesianContent(farmContext, explanation = null) {
         const creditScore = this.extractCreditScore();
-        
+        const sizeLabel = this.farmSizeLabel(farmContext, 'id');
+        const crop = farmContext.crop ? ` (${farmContext.crop})` : '';
+        const recs = (explanation && explanation.recommendations && explanation.recommendations.length)
+            ? explanation.recommendations
+            : this.generateRecommendations('id', farmContext, creditScore);
+
         return {
-            title: " Analisis Kredit Pertanian",
-            subtitle: `Berdasarkan analisis satelit ${farmContext.farmSize === 'small' ? 'kebun kecil' : 
-                      farmContext.farmSize === 'medium' ? 'kebun sedang' : 'kebun besar'} Anda`,
+            title: "Analisis Kredit Pertanian",
+            subtitle: `Berdasarkan analisis satelit ${sizeLabel} Anda${crop}`,
             creditIcon: this.getCreditIcon(creditScore),
             creditTitle: "Skor Kredit Anda",
             creditScore: this.formatCreditScore(creditScore),
@@ -293,16 +367,21 @@ class FarmerExplanationComponent {
             conditionsTitle: "Kondisi Saat Ini",
             conditions: this.generateConditions('id', farmContext),
             recommendationsTitle: "Saran Perbaikan",
-            recommendations: explanation?.recommendations || this.generateRecommendations('id', farmContext, creditScore)
+            recommendations: recs
         };
     }
     
     generateEnglishContent(farmContext, explanation = null) {
         const creditScore = this.extractCreditScore();
-        
+        const sizeLabel = this.farmSizeLabel(farmContext, 'en');
+        const crop = farmContext.crop ? ` (${farmContext.crop})` : '';
+        const recs = (explanation && explanation.recommendations && explanation.recommendations.length)
+            ? explanation.recommendations
+            : this.generateRecommendations('en', farmContext, creditScore);
+
         return {
-            title: " Agricultural Credit Analysis",
-            subtitle: `Based on satellite analysis of your ${farmContext.farmSize} farm`,
+            title: "Agricultural Credit Analysis",
+            subtitle: `Based on satellite analysis of your ${sizeLabel} farm${crop}`,
             creditIcon: this.getCreditIcon(creditScore),
             creditTitle: "Your Credit Score",
             creditScore: this.formatCreditScore(creditScore),
@@ -310,26 +389,30 @@ class FarmerExplanationComponent {
             conditionsTitle: "Current Conditions",
             conditions: this.generateConditions('en', farmContext),
             recommendationsTitle: "Improvement Recommendations",
-            recommendations: explanation?.recommendations || this.generateRecommendations('en', farmContext, creditScore)
+            recommendations: recs
         };
     }
     
     extractCreditScore() {
-        if (!this.creditData) return 0;
-        
-        // Try different possible score fields
-        return this.creditData.credit_score || 
-               this.creditData.score || 
-               this.creditData.final_score || 
-               650; // Default middle score
+        if (!this.creditData) return 650;
+        const raw = this.creditData.credit_score ??
+            this.creditData.score ??
+            this.creditData.final_score ??
+            650;
+        const n = Number(raw);
+        return Number.isFinite(n) ? Math.round(n) : 650;
     }
     
     extractRiskLevel() {
         if (!this.creditData) return 'medium';
-        
-        return this.creditData.risk_level || 
-               this.creditData.risk_rating || 
-               'medium';
+        const rating = String(
+            this.creditData.risk_level ||
+            this.creditData.risk_rating ||
+            ''
+        ).toLowerCase();
+        if (rating.includes('low') || rating.includes('excellent') || rating.includes('very good')) return 'low';
+        if (rating.includes('high') || rating.includes('poor')) return 'high';
+        return 'medium';
     }
     
     extractApprovalProbability() {
@@ -610,34 +693,41 @@ class LLMTranslationEngine {
     }
     
     async getGeminiExplanation(technicalData, targetLanguage, farmContext, shapData = null, weatherData = null, satelliteData = null) {
-        const response = await fetch(this.apiEndpoint, {
-            method: 'POST',
-            headers: (typeof window.agriAuthHeaders === 'function')
-                ? window.agriAuthHeaders()
-                : { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({
-                creditData: technicalData,
-                shapData: shapData,
-                weatherData: weatherData,
-                satelliteData: satelliteData,
-                language: targetLanguage,
-                farmContext: farmContext
-            })
-        });
-        
-        if (!response.ok) {
-            throw new Error(`API request failed: ${response.status}`);
-        }
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            return this.formatGeminiResponse(result.explanation, targetLanguage);
-        } else if (result.fallback) {
-            return this.formatGeminiResponse(result.fallback, targetLanguage);
-        } else {
+        const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+        const timer = controller ? setTimeout(() => controller.abort(), 22000) : null;
+        try {
+            const response = await fetch(this.apiEndpoint, {
+                method: 'POST',
+                headers: (typeof window.agriAuthHeaders === 'function')
+                    ? window.agriAuthHeaders()
+                    : { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                signal: controller ? controller.signal : undefined,
+                body: JSON.stringify({
+                    creditData: technicalData,
+                    shapData: shapData,
+                    weatherData: weatherData,
+                    satelliteData: satelliteData,
+                    language: targetLanguage,
+                    farmContext: farmContext
+                })
+            });
+
+            const result = await response.json().catch(() => ({}));
+
+            // Prefer explanation even on non-2xx if the API attached fallback content
+            if (result.explanation) {
+                return this.formatGeminiResponse(result.explanation, targetLanguage);
+            }
+            if (result.fallback) {
+                return this.formatGeminiResponse(result.fallback, targetLanguage);
+            }
+            if (!response.ok) {
+                throw new Error(result.error || `API request failed: ${response.status}`);
+            }
             throw new Error(result.error || 'API request failed');
+        } finally {
+            if (timer) clearTimeout(timer);
         }
     }
     
@@ -788,22 +878,60 @@ class LLMTranslationEngine {
     }
     
     generateBasicRecommendations(technicalData, language, farmContext) {
-        const recommendations = [];
-        
         if (language === 'id') {
-            recommendations.push('Pertahankan catatan keuangan yang akurat');
+            const recommendations = [
+                {
+                    title: 'Perbaiki Catatan Keuangan',
+                    description: 'Catat semua pemasukan dan pengeluaran pertanian secara rapi',
+                    priority: 'high',
+                    timeline: '1-30 hari',
+                    impact: 'Meningkatkan kepercayaan bank'
+                }
+            ];
             if (farmContext.cropHealth !== 'excellent') {
-                recommendations.push('Tingkatkan kesehatan tanaman dengan pupuk organik');
+                recommendations.push({
+                    title: 'Tingkatkan Kesehatan Tanaman',
+                    description: 'Gunakan pupuk organik dan pastikan irigasi cukup',
+                    priority: 'medium',
+                    timeline: '1-3 bulan',
+                    impact: 'Meningkatkan hasil panen'
+                });
             }
-            recommendations.push('Diversifikasi tanaman untuk mengurangi risiko');
-        } else {
-            recommendations.push('Maintain accurate financial records');
-            if (farmContext.cropHealth !== 'excellent') {
-                recommendations.push('Improve crop health with organic fertilizers');
-            }
-            recommendations.push('Diversify crops to reduce risk');
+            recommendations.push({
+                title: 'Diversifikasi Tanaman',
+                description: 'Tanam lebih dari satu jenis komoditas untuk mengurangi risiko',
+                priority: 'low',
+                timeline: '6-12 bulan',
+                impact: 'Stabilkan arus kas'
+            });
+            return recommendations;
         }
-        
+
+        const recommendations = [
+            {
+                title: 'Improve Financial Records',
+                description: 'Keep clear records of farm income and expenses',
+                priority: 'high',
+                timeline: '1-30 days',
+                impact: 'Increases lender confidence'
+            }
+        ];
+        if (farmContext.cropHealth !== 'excellent') {
+            recommendations.push({
+                title: 'Improve Crop Health',
+                description: 'Use organic fertilizer and ensure adequate irrigation',
+                priority: 'medium',
+                timeline: '1-3 months',
+                impact: 'Better harvest yields'
+            });
+        }
+        recommendations.push({
+            title: 'Diversify Crops',
+            description: 'Grow more than one commodity to reduce risk',
+            priority: 'low',
+            timeline: '6-12 months',
+            impact: 'More stable cash flow'
+        });
         return recommendations;
     }
 }
