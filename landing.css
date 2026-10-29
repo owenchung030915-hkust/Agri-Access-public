@@ -598,9 +598,10 @@ a.inline {
     position: absolute;
     inset: 0;
     background:
-        url("https://images.unsplash.com/photo-1592982537447-7440770cbfc9?auto=format&fit=crop&w=1800&q=70")
+        url("https://images.unsplash.com/photo-1464226184884-fa280b87c399?auto=format&fit=crop&w=1800&h=1200&q=70")
             right center / cover no-repeat;
     opacity: 0.3;
+    image-orientation: from-image;
     mask-image: linear-gradient(90deg, transparent 15%, black 70%);
     -webkit-mask-image: linear-gradient(90deg, transparent 15%, black 70%);
 }
@@ -642,6 +643,11 @@ a.inline {
     grid-template-columns: repeat(5, 1fr);
     gap: 18px;
     margin-top: 8px;
+}
+
+.team-grid-founders {
+    grid-template-columns: repeat(3, 1fr);
+    max-width: 52rem;
 }
 
 .team-member {
@@ -813,6 +819,7 @@ a.inline {
     }
 
     .team-grid { grid-template-columns: 1fr 1fr; }
+    .team-grid-founders { grid-template-columns: 1fr; }
 
     .indonesia::before {
         opacity: 0.2;
