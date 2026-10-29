@@ -387,7 +387,10 @@ a.inline {
 .split-copy p strong { color: var(--ink); font-weight: 600; }
 
 /* Recognition */
-.recognition { background: var(--white); }
+.recognition {
+    background:
+        linear-gradient(180deg, #fbf8f2 0%, #f3eee4 100%);
+}
 
 .recognition-mark {
     font-family: var(--font-display);
@@ -492,7 +495,11 @@ a.inline {
 }
 
 /* Journey */
-.journey { background: var(--white); }
+.journey {
+    background:
+        radial-gradient(ellipse 60% 50% at 100% 0%, rgba(231, 242, 235, 0.7), transparent 55%),
+        #f7f3eb;
+}
 
 .journey-steps {
     display: grid;
@@ -565,7 +572,10 @@ a.inline {
 }
 
 /* Evidence abroad */
-.abroad { background: var(--white); }
+.abroad {
+    background:
+        linear-gradient(180deg, #f7f3eb 0%, var(--mist) 100%);
+}
 
 .abroad-grid {
     display: grid;

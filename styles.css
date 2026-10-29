@@ -8,9 +8,10 @@ body {
     font-family: var(--font-body);
     color: var(--ink);
     background:
-        radial-gradient(ellipse 80% 50% at 10% -10%, rgba(47, 143, 99, 0.14), transparent 55%),
-        radial-gradient(ellipse 60% 40% at 100% 0%, rgba(15, 61, 46, 0.08), transparent 50%),
-        var(--sand);
+        radial-gradient(ellipse 90% 55% at 8% -5%, rgba(47, 143, 99, 0.18), transparent 52%),
+        radial-gradient(ellipse 70% 45% at 95% 5%, rgba(15, 61, 46, 0.12), transparent 48%),
+        radial-gradient(ellipse 50% 40% at 50% 100%, rgba(231, 242, 235, 0.7), transparent 60%),
+        linear-gradient(165deg, #ebe4d6 0%, #f3eee4 42%, #e8f0ea 100%);
     margin: 0;
     padding: 0;
     height: 100vh;
@@ -163,21 +164,27 @@ body {
 
 .control-panel {
     padding: 22px;
-    background: rgba(255, 255, 255, 0.92);
+    background:
+        linear-gradient(165deg, rgba(255, 252, 247, 0.88) 0%, rgba(231, 242, 235, 0.72) 100%);
+    border: 1px solid rgba(19, 32, 25, 0.08);
     border-right: 1px solid var(--line);
     overflow-y: auto;
-    border-radius: var(--radius);
-    box-shadow: 0 2px 12px rgba(19, 32, 25, 0.06);
+    border-radius: 10px;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.65) inset,
+        0 8px 28px rgba(19, 32, 25, 0.07);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     min-height: 0;
 }
 
 .workflow-section {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(255, 252, 247, 0.9) 0%, var(--mist) 100%);
+    border-radius: 10px;
     padding: 18px;
     margin-bottom: 15px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    border-left: 4px solid var(--forest-mid);
+    box-shadow: 0 2px 10px rgba(19, 32, 25, 0.05);
+    border-left: 3px solid var(--forest-mid);
     transition: all 0.3s ease;
 }
 
@@ -225,12 +232,15 @@ body {
 
 .map-container {
     position: relative;
-    background: var(--white);
-    border-right: 1px solid var(--line);
+    background:
+        linear-gradient(180deg, rgba(255, 252, 247, 0.55) 0%, rgba(231, 242, 235, 0.4) 100%);
+    border: 1px solid rgba(19, 32, 25, 0.08);
     display: grid;
     grid-template-rows: 1fr 200px;
-    border-radius: var(--radius);
-    box-shadow: 0 2px 12px rgba(19, 32, 25, 0.06);
+    border-radius: 10px;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.55) inset,
+        0 8px 28px rgba(19, 32, 25, 0.07);
     overflow: hidden;
     min-height: 600px;
 }
@@ -342,8 +352,8 @@ body {
 }
 
 .satellite-images-section {
-    background: #f8f9fa;
-    border-top: 1px solid #e0e0e0;
+    background: linear-gradient(180deg, rgba(247, 243, 235, 0.9), rgba(231, 242, 235, 0.85));
+    border-top: 1px solid var(--line);
     padding: 15px;
     overflow-y: auto;
     max-height: 200px;
@@ -366,7 +376,7 @@ body {
 }
 
 .satellite-image-item {
-    background: white;
+    background: rgba(255, 252, 247, 0.92);
     border-radius: 6px;
     border: 1px solid #e0e0e0;
     overflow: hidden;
@@ -404,10 +414,16 @@ body {
 
 .results-panel {
     padding: 22px;
-    background: rgba(255, 255, 255, 0.92);
+    background:
+        linear-gradient(165deg, rgba(255, 252, 247, 0.9) 0%, rgba(231, 242, 235, 0.75) 100%);
+    border: 1px solid rgba(19, 32, 25, 0.08);
     overflow-y: auto;
-    border-radius: var(--radius);
-    box-shadow: 0 2px 12px rgba(19, 32, 25, 0.06);
+    border-radius: 10px;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.65) inset,
+        0 8px 28px rgba(19, 32, 25, 0.07);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     min-height: 0;
 }
 
@@ -554,16 +570,15 @@ body {
 .loading-content {
     text-align: center;
     padding: 50px 40px;
-    border-radius: 20px;
-    background: linear-gradient(145deg, #ffffff 0%, #f8fff8 100%);
-    box-shadow: 
-        0 20px 40px rgba(76, 175, 80, 0.15),
-        0 10px 20px rgba(0,0,0,0.1),
-        inset 0 1px 0 rgba(255,255,255,0.8);
+    border-radius: 14px;
+    background: linear-gradient(160deg, rgba(255, 252, 247, 0.95) 0%, var(--mist) 100%);
+    box-shadow:
+        0 18px 40px rgba(15, 61, 46, 0.14),
+        inset 0 1px 0 rgba(255, 255, 255, 0.75);
     max-width: 350px;
-    border: 1px solid rgba(76, 175, 80, 0.2);
+    border: 1px solid rgba(19, 32, 25, 0.1);
     animation: fadeInScale 0.4s ease-out;
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(12px);
 }
 
 @keyframes fadeInScale {
@@ -624,18 +639,19 @@ body {
 }
 
 .analysis-result {
-    background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
+    background: linear-gradient(145deg, rgba(255, 252, 247, 0.92) 0%, rgba(231, 242, 235, 0.65) 100%);
     padding: 20px;
-    border-radius: 12px;
+    border-radius: 10px;
     margin-bottom: 20px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    border-left: 4px solid var(--leaf);
+    box-shadow: 0 2px 12px rgba(19, 32, 25, 0.05);
+    border: 1px solid rgba(19, 32, 25, 0.07);
+    border-left: 3px solid var(--leaf);
     transition: all 0.3s ease;
 }
 
 .analysis-result:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(19, 32, 25, 0.08);
 }
 
 .analysis-result h4 {
@@ -1169,8 +1185,8 @@ body {
 }
 
 .metric-card {
-    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-    border: 2px solid #dee2e6;
+    background: linear-gradient(145deg, rgba(255, 252, 247, 0.9), var(--mist));
+    border: 1px solid var(--line);
     border-radius: 8px;
     padding: 12px;
     text-align: center;
@@ -1199,23 +1215,23 @@ body {
 
 /* Collapsible Section Styles */
 .collapsible-section {
-    border: 2px solid #e0e0e0;
+    border: 1px solid var(--line);
     border-radius: 8px;
     margin: 15px 0;
-    background: white;
+    background: rgba(255, 252, 247, 0.7);
     overflow: hidden;
 }
 
 .collapsible-section summary {
     padding: 12px 16px;
-    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-    border-bottom: 1px solid #e0e0e0;
+    background: linear-gradient(135deg, rgba(255, 252, 247, 0.95), var(--mist));
+    border-bottom: 1px solid var(--line);
     font-size: 14px;
     transition: background 0.3s ease;
 }
 
 .collapsible-section summary:hover {
-    background: linear-gradient(135deg, #e9ecef, #dee2e6);
+    background: var(--mist);
 }
 
 .collapsible-section[open] summary {
