@@ -9,28 +9,63 @@ function sharedApiUrl(path) {
     return (p.startsWith('/') ? p : '/' + p);
 }
 
-// Common demo data
+// Common demo data — keep in sync with PILOT_FARMS in basel_iii_api.py / app.js loadDemoLocation
 const DEMO_LOCATIONS = {
     siti: {
         name: 'Ibu Siti Nurhasanah',
-        lat: -6.7749,
-        lon: 107.1389,
+        lat: -6.3276,
+        lon: 108.3249,
         size: 1.5,
         crop: 'rice'
     },
     budi: {
         name: 'Pak Budi Santoso',
-        lat: -2.5489,
-        lon: 99.6401,
+        lat: -2.1000,
+        lon: 102.3000,
         size: 3.2,
         crop: 'palm oil'
     },
     ratna: {
         name: 'Ibu Ratna Sari',
-        lat: -7.6145,
-        lon: 109.3425,
+        lat: -7.3179,
+        lon: 110.1779,
         size: 0.8,
         crop: 'coffee'
+    },
+    agus: {
+        name: 'Pak Agus Pratama',
+        lat: -3.0027,
+        lon: 104.7500,
+        size: 4.6,
+        crop: 'cocoa'
+    },
+    dewi: {
+        name: 'Ibu Dewi Kartika',
+        lat: -5.1180,
+        lon: 105.3060,
+        size: 2.1,
+        crop: 'coffee'
+    },
+    hasan: {
+        name: 'Pak Hasan Basri',
+        lat: -4.0050,
+        lon: 119.6500,
+        size: 3.0,
+        crop: 'cocoa'
+    },
+    made: {
+        name: 'Pak Made Suardana',
+        lat: -8.6500,
+        lon: 117.3600,
+        size: 1.9,
+        crop: 'rice'
+    },
+    yusuf: {
+        name: 'Pak Yusuf Mahendra',
+        lat: 0.2000,
+        lon: 117.2000,
+        size: 9.5,
+        crop: 'palm oil'
     }
 };
 

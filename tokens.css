@@ -1,0 +1,16 @@
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650;9..144,700&family=Outfit:wght@400;500;600;700&display=swap");
+
+:root {
+    --forest: #0f3d2e;
+    --forest-mid: #1a5c44;
+    --leaf: #2f8f63;
+    --mist: #e7f2eb;
+    --sand: #f3eee4;
+    --ink: #132019;
+    --muted: #4d6157;
+    --line: rgba(19, 32, 25, 0.12);
+    --white: #ffffff;
+    --radius: 6px;
+    --font-display: "Fraunces", Georgia, serif;
+    --font-body: "Outfit", "Segoe UI", sans-serif;
+}

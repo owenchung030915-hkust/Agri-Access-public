@@ -9,6 +9,7 @@
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <!-- Agri-Accept Styles -->
+    <link rel="stylesheet" href="tokens.css" />
     <link rel="stylesheet" href="shared.css" />
     <link rel="stylesheet" href="styles.css" />
 </head>
@@ -19,12 +20,11 @@
             <div class="header-buttons">
                 <a href="/" class="header-btn">Home</a>
                 <a href="#" class="header-btn" id="logoutBtn">Logout</a>
-                <button onclick="document.documentElement.requestFullscreen()" class="header-btn">Present
-                </button>
+                <button type="button" onclick="document.documentElement.requestFullscreen()" class="header-btn">Present</button>
             </div>
         </div>
-        <p>Live pilot platform · bank-ready evidence, not an AI lender</p>
-        <div class="header-subtitle">Satellite + weather proof • RF/HistGBM/XGB ensemble • Basel III • agri-accept-private.onrender.com
+        <p>Live pilot · bank-ready evidence — the bank keeps the decision</p>
+        <div class="header-subtitle">Satellite + weather proof · explainable credit band · private API
         </div>
     </div>
         
@@ -40,23 +40,26 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="placeSearch">Find a place (Indonesia)</label>
+                    <label for="placeSearch">Find a farm or place</label>
                     <div class="place-search-row">
-                        <input type="text" id="placeSearch" placeholder="e.g. Indramayu, Temanggung, Riau…" autocomplete="off">
-                        <button type="button" class="demo-btn" id="placeSearchBtn" onclick="searchPlaceAndDrop()">Search</button>
+                        <input type="text" id="placeSearch" placeholder="Farm name, village, kabupaten…" autocomplete="off">
+                        <div class="search-actions">
+                            <button type="button" class="demo-btn primary-action" id="placeSearchBtn">Search</button>
+                            <button type="button" class="demo-btn" id="useMyLocationBtn" title="Use device GPS">My location</button>
+                        </div>
                     </div>
                     <div id="placeSearchResults" class="place-search-results" hidden></div>
-                    <small style="color:#666;font-size:11px;">Or click the map to drop a pin — coordinates update automatically.</small>
+                    <small style="color:var(--muted);font-size:11px;">Type to search pilot farms + Indonesian places. Or click the map to drop a pin.</small>
                 </div>
 
                 <div class="form-group">
                     <label for="latitude">Latitude</label>
-                    <input type="number" id="latitude" step="0.0001" placeholder="-6.7749" value="-6.7749">
+                    <input type="number" id="latitude" step="0.0001" placeholder="-6.3276" value="-6.3276">
                 </div>
                 
                 <div class="form-group">
                     <label for="longitude">Longitude</label>
-                    <input type="number" id="longitude" step="0.0001" placeholder="107.1389" value="107.1389">
+                    <input type="number" id="longitude" step="0.0001" placeholder="108.3249" value="108.3249">
                 </div>
                 <div id="pickedPlaceLabel" class="picked-place-label" hidden></div>
                 
@@ -77,9 +80,9 @@
                 </div>
                 
                 
-                <h3 class="section-subtitle" style="margin-top: 25px; color: #2E7D32; font-size: 1.1em;">Loan Application
+                <h3 class="section-subtitle" style="margin-top: 25px; color: var(--forest); font-size: 1.1em;">Loan Application
                 </h3>
-                <p style="font-size: 12px; color: #666; margin-bottom: 15px;">Credit application details and loan requirements
+                <p style="font-size: 12px; color: var(--muted); margin-bottom: 15px;">Credit application details and loan requirements
                 </p>
                 
                 <div class="form-group">
@@ -166,9 +169,9 @@
             </div>
             
             <div class="results-panel">
-                <div style="background: linear-gradient(135deg, #2E7D32, #4CAF50); color: white; padding: 20px; border-radius: 12px; margin-bottom: 25px; text-align: center;">
-                    <h2 style="margin: 0; font-size: 1.3em;">Basel III Credit Assessment</h2>
-                    <p style="margin: 5px 0 0 0; opacity: 0.9; font-size: 0.9em;">Processed satellite imagery, weather data, and traditional credit factors</p>
+                <div style="background: var(--forest); color: white; padding: 20px; border-radius: 8px; margin-bottom: 25px; text-align: center;">
+                    <h2 style="margin: 0; font-size: 1.3em; font-family: var(--font-display);">Credit Assessment</h2>
+                    <p style="margin: 5px 0 0 0; opacity: 0.9; font-size: 0.9em;">Satellite, weather, and farm evidence for banker review</p>
                 </div>
                 
                 <div id="successResults" class="hidden">

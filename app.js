@@ -166,13 +166,56 @@ function wireCoordinateInputs() {
     lonEl.addEventListener('change', onManualChange);
 
     const searchInput = document.getElementById('placeSearch');
+    const searchBtn = document.getElementById('placeSearchBtn');
+    const gpsBtn = document.getElementById('useMyLocationBtn');
+    if (searchBtn) {
+        searchBtn.addEventListener('click', () => searchPlaceAndDrop({ autoSelect: false }));
+    }
     if (searchInput) {
         searchInput.addEventListener('keydown', (ev) => {
             if (ev.key === 'Enter') {
                 ev.preventDefault();
-                searchPlaceAndDrop();
+                searchPlaceAndDrop({ autoSelect: true });
+            } else if (ev.key === 'Escape') {
+                const box = document.getElementById('placeSearchResults');
+                if (box) box.hidden = true;
             }
         });
+        const runTypeahead = (typeof debounce === 'function')
+            ? debounce(() => searchPlaceAndDrop({ autoSelect: false, silentEmpty: true }), 350)
+            : () => searchPlaceAndDrop({ autoSelect: false, silentEmpty: true });
+        searchInput.addEventListener('input', () => {
+            const q = (searchInput.value || '').trim();
+            if (q.length < 2) {
+                const box = document.getElementById('placeSearchResults');
+                if (box) box.hidden = true;
+                return;
+            }
+            runTypeahead();
+        });
+    }
+    if (gpsBtn) {
+        gpsBtn.addEventListener('click', useMyLocationForFarm);
+    }
+}
+
+async function useMyLocationForFarm() {
+    const label = document.getElementById('pickedPlaceLabel');
+    try {
+        if (typeof getCurrentLocation !== 'function') {
+            throw new Error('Geolocation helper not loaded');
+        }
+        if (label) {
+            label.hidden = false;
+            label.textContent = 'Getting your location…';
+        }
+        const pos = await getCurrentLocation();
+        setFarmLocation(pos.latitude, pos.longitude, { reverseGeocode: true, pan: true });
+    } catch (err) {
+        if (label) {
+            label.hidden = false;
+            label.textContent = err.message || 'Unable to get location';
+        }
     }
 }
 
@@ -249,17 +292,57 @@ async function reverseGeocodeFarm(lat, lon) {
     }
 }
 
-async function searchPlaceAndDrop() {
+function applySearchResult(item) {
+    if (!item) return;
+    if (item.kind === 'farm' || item.type === 'pilot_farm') {
+        if (item.name) document.getElementById('farmerName').value = item.name;
+        if (item.size != null) document.getElementById('farmSize').value = item.size;
+        if (item.crop) document.getElementById('primaryCrop').value = item.crop;
+        setFarmLocation(item.lat, item.lon, { reverseGeocode: false, pan: true });
+        const label = document.getElementById('pickedPlaceLabel');
+        if (label) {
+            label.hidden = false;
+            label.textContent = item.display_name || item.label || item.name;
+        }
+        updateFarmMarker();
+        return;
+    }
+    setFarmLocation(item.lat, item.lon, { reverseGeocode: true, pan: true });
+}
+
+function escapeHtml(str) {
+    return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+async function searchPlaceAndDrop(opts) {
+    opts = opts || {};
     const input = document.getElementById('placeSearch');
     const box = document.getElementById('placeSearchResults');
     const q = (input && input.value || '').trim();
     if (!q) return;
+    if (q.length < 2) {
+        if (box && !opts.silentEmpty) {
+            box.hidden = false;
+            box.innerHTML = '<div class="place-result-item">Type at least 2 characters</div>';
+        }
+        return;
+    }
     if (box) {
         box.hidden = false;
-        box.innerHTML = '<div class="place-result-item">Searching…</div>';
+        box.innerHTML = '<div class="place-result-item">Searching farms &amp; places…</div>';
     }
     try {
-        const url = `${API_CONFIG.endpoints.geocodeSearch}?q=${encodeURIComponent(q)}`;
+        let url = `${API_CONFIG.endpoints.geocodeSearch}?q=${encodeURIComponent(q)}`;
+        if (map && typeof map.getBounds === 'function') {
+            const b = map.getBounds();
+            // Nominatim viewbox: left,top,right,bottom
+            const viewbox = [b.getWest(), b.getNorth(), b.getEast(), b.getSouth()].join(',');
+            url += `&viewbox=${encodeURIComponent(viewbox)}&bounded=0`;
+        }
         const res = await fetch(url, {
             credentials: 'include',
             headers: (typeof window.agriAuthHeaders === 'function') ? window.agriAuthHeaders() : undefined
@@ -271,36 +354,54 @@ async function searchPlaceAndDrop() {
         const data = await res.json().catch(() => ({}));
         const results = (data && data.results) || [];
         if (!res.ok || !data.success || results.length === 0) {
-            if (box) box.innerHTML = '<div class="place-result-item">No places found in Indonesia. Try another name.</div>';
+            const tips = (data.suggestions || []).map((s) => s.label).filter(Boolean);
+            const tipText = tips.length
+                ? ` Try: ${tips.join(', ')}`
+                : ' Try a village, kabupaten, or pilot farm name (e.g. Indramayu, Temanggung).';
+            if (box) box.innerHTML = `<div class="place-result-item">No matches.${escapeHtml(tipText)}</div>`;
             return;
         }
         if (box) {
-            box.innerHTML = results.map((r, i) => `
+            box.innerHTML = results.map((r, i) => {
+                const kind = (r.kind === 'farm' || r.type === 'pilot_farm') ? 'Farm' : 'Place';
+                const meta = r.kind === 'farm'
+                    ? `${escapeHtml(r.crop || '')} · ${escapeHtml(r.region || '')}`
+                    : escapeHtml(r.region || r.type || '');
+                return `
                 <button type="button" class="place-result-item" data-idx="${i}">
-                    ${r.display_name}
-                </button>
-            `).join('');
+                    <span class="result-kind">${kind}</span>${escapeHtml(r.label || r.display_name || '')}
+                    <span class="result-meta">${meta || escapeHtml(r.display_name || '')}</span>
+                </button>`;
+            }).join('');
             box.querySelectorAll('.place-result-item[data-idx]').forEach((btn) => {
                 btn.addEventListener('click', () => {
                     const item = results[Number(btn.getAttribute('data-idx'))];
                     if (!item) return;
-                    setFarmLocation(item.lat, item.lon, { reverseGeocode: true, pan: true });
+                    applySearchResult(item);
                     box.hidden = true;
-                    if (input) input.value = item.display_name.split(',')[0];
+                    if (input) input.value = item.label || (item.display_name || '').split(',')[0];
                 });
             });
         }
-        // Auto-drop on top hit for fast path
-        const top = results[0];
-        setFarmLocation(top.lat, top.lon, { reverseGeocode: true, pan: true });
+        // Only auto-select when user pressed Enter and there is a single clear hit,
+        // or the top hit is an exact pilot farm match.
+        if (opts.autoSelect) {
+            const top = results[0];
+            const exactFarm = top && (top.kind === 'farm' || top.type === 'pilot_farm') && results.length === 1;
+            if (results.length === 1 || exactFarm) {
+                applySearchResult(top);
+                if (box && results.length === 1) box.hidden = true;
+            }
+        }
     } catch (err) {
-        if (box) box.innerHTML = `<div class="place-result-item">Search failed: ${err.message}</div>`;
+        if (box) box.innerHTML = `<div class="place-result-item">Search failed: ${escapeHtml(err.message)}</div>`;
     }
 }
 
-// Expose for inline onclick
+// Expose for console / legacy callers
 window.searchPlaceAndDrop = searchPlaceAndDrop;
 window.setFarmLocation = setFarmLocation;
+window.useMyLocationForFarm = useMyLocationForFarm;
 
 // ===== DEMO LOCATIONS AND USER INTERFACE =====
 
@@ -400,7 +501,7 @@ function updateFarmMarker() {
         autoPan: true,
         icon: L.divIcon({
             className: 'farm-marker',
-            html: `<div style="background: #2E7D32; color: white; padding: 6px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.35); border: 2px solid #fff; max-width: 160px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">📍 ${label}</div>`,
+            html: `<div style="background: #0f3d2e; color: white; padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; font-family: Outfit, Segoe UI, sans-serif; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.35); border: 2px solid #fff; max-width: 160px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${label}</div>`,
             iconSize: [150, 34],
             iconAnchor: [75, 34]
         })
@@ -855,20 +956,22 @@ function displayAnalysisResults(result) {
         // Update credit score arc (with delay to ensure it's initialized)
         setTimeout(() => {
             if (creditScoreArc && result.basel_iii_results) {
-                const slikScore = convertToSLIKScale(result.basel_iii_results.credit_score);
-                console.log(' Setting credit score arc to SLIK:', slikScore, 'from credit score:', result.basel_iii_results.credit_score);
+                const slikScore = resolveDisplaySlik(result.basel_iii_results);
+                const label = result.basel_iii_results.slik_label || '';
+                console.log(' Setting credit score arc to band:', slikScore, label, 'fico-like:', result.basel_iii_results.credit_score);
                 creditScoreArc.setScore(slikScore, true);
             } else {
                 console.log(' Credit score arc not available, showing fallback');
-                // Show fallback visualization
                 const arcContainer = document.getElementById('creditScoreArc');
                 if (arcContainer && result.basel_iii_results) {
-                    const slikScore = convertToSLIKScale(result.basel_iii_results.credit_score);
+                    const slikScore = resolveDisplaySlik(result.basel_iii_results);
+                    const label = result.basel_iii_results.slik_label || `Band ${slikScore}`;
+                    const fico = Math.round(result.basel_iii_results.credit_score || 0);
                     arcContainer.innerHTML = `
                         <div style="text-align: center; padding: 40px; background: linear-gradient(135deg, #f8f9fa, #e9ecef); border-radius: 8px; border: 2px solid #dee2e6;">
                             <div style="font-size: 3em; font-weight: 700; color: #2c3e50; margin-bottom: 10px;">${slikScore}</div>
-                            <div style="font-size: 16px; color: #666; font-weight: 500;">SLIK ${slikScore} Rating</div>
-                            <div style="font-size: 14px; color: #999; margin-top: 5px;">Indonesian Banking Standard</div>
+                            <div style="font-size: 16px; color: #666; font-weight: 500;">${label}</div>
+                            <div style="font-size: 14px; color: #999; margin-top: 5px;">Score ${fico} · Kolektibilitas ${result.basel_iii_results.kolektibilitas ?? '—'}</div>
                         </div>
                     `;
                 }
@@ -947,7 +1050,7 @@ function displayAnalysisResults(result) {
             
             // Update credit score arc
             if (creditScoreArc) {
-                const slikScore = convertToSLIKScale(baselResults.credit_score);
+                const slikScore = resolveDisplaySlik(baselResults);
                 creditScoreArc.setScore(slikScore, true);
             }
             
@@ -1368,7 +1471,11 @@ function displayBaselIIIResults(baselResults, formattedResults) {
     
     // Update credit analysis section with Basel III data
     document.getElementById('creditScore').textContent = formattedResults.credit_score_rounded;
-    document.getElementById('riskLevel').textContent = baselResults.risk_rating;
+    const slikLabel = baselResults.slik_label || '';
+    const band = resolveDisplaySlik(baselResults);
+    document.getElementById('riskLevel').textContent = slikLabel
+        ? `${slikLabel} (${band}/5) · ${baselResults.risk_rating}`
+        : baselResults.risk_rating;
     
     // Create loan analysis based on Basel III results
     const loanAmount = (parseFloat(document.getElementById('loanAmount').value) || 50000) * 1000;
@@ -1402,13 +1509,19 @@ function displayBaselIIIResults(baselResults, formattedResults) {
 }
 
 function convertToSLIKScale(creditScore) {
-    // Convert 300-850 credit score to SLIK 1-5 scale (integers only)
-    // Higher SLIK number = better creditworthiness
-    if (creditScore >= 740) return 5;  // Excellent (Kolektibilitas 1)
-    if (creditScore >= 670) return 4;  // Good (Kolektibilitas 2)
-    if (creditScore >= 580) return 3;  // Average (Kolektibilitas 3)
-    if (creditScore >= 500) return 2;  // Poor (Kolektibilitas 4)
-    return 1;  // Bad (Kolektibilitas 5)
+    // Display band for arc: 1=Poor … 5=Excellent (must match backend convert_to_slik_scale)
+    if (creditScore >= 750) return 5;  // Excellent
+    if (creditScore >= 680) return 4;  // Very Good
+    if (creditScore >= 600) return 3;  // Good
+    if (creditScore >= 520) return 2;  // Fair
+    return 1;  // Poor
+}
+
+function resolveDisplaySlik(baselResults) {
+    if (baselResults && baselResults.slik_score != null) {
+        return Math.max(1, Math.min(5, parseInt(baselResults.slik_score, 10) || 3));
+    }
+    return convertToSLIKScale(baselResults?.credit_score || 600);
 }
 
 function getRiskPremium(riskRating) {
