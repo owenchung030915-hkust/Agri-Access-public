@@ -83,24 +83,25 @@ class CreditScoreArc {
             
             .credit-score-display {
                 position: absolute;
-                bottom: -40%;
                 left: 50%;
+                top: 58%;
                 transform: translateX(-50%);
                 text-align: center;
                 pointer-events: none;
                 background: none;
                 border: none;
-                padding: 40px 0 40px 0;
-                margin-bottom: 30px;
+                padding: 0;
+                margin: 0;
                 box-shadow: none;
+                z-index: 2;
             }
             
             .credit-score-number {
-                font-size: 2.5em;
+                font-size: 2.25em;
                 font-weight: 700;
                 color: #333;
                 line-height: 1;
-                margin-bottom: 5px;
+                margin-bottom: 4px;
             }
             
             .credit-score-status {
@@ -123,7 +124,7 @@ class CreditScoreArc {
             
             .arc-pointer {
                 transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);
-                filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+                filter: drop-shadow(0 1px 2px rgba(0,0,0,0.25));
             }
             
             .arc-labels {
@@ -248,41 +249,45 @@ class CreditScoreArc {
         const centerX = this.svg.getAttribute('width') / 2;
         const centerY = this.options.radius + 20;
         const radius = this.options.radius;
+        // Short rim needle — keeps the center score number clear
+        const outerR = radius - 6;
+        const innerR = radius * 0.62;
         
-        // Create pointer group
         const pointerGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         pointerGroup.setAttribute('class', 'arc-pointer');
         
-        // Pointer line
+        const start = this.polarToCartesian(centerX, centerY, innerR, 270);
+        const end = this.polarToCartesian(centerX, centerY, outerR, 270);
+        
         const pointerLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        pointerLine.setAttribute('x1', centerX);
-        pointerLine.setAttribute('y1', centerY);
-        pointerLine.setAttribute('x2', centerX);
-        pointerLine.setAttribute('y2', centerY - radius + 10);
+        pointerLine.setAttribute('x1', start.x);
+        pointerLine.setAttribute('y1', start.y);
+        pointerLine.setAttribute('x2', end.x);
+        pointerLine.setAttribute('y2', end.y);
         pointerLine.setAttribute('stroke', '#333');
-        pointerLine.setAttribute('stroke-width', 3);
+        pointerLine.setAttribute('stroke-width', 2);
         pointerLine.setAttribute('stroke-linecap', 'round');
         
-        // Pointer circle (center dot)
-        const pointerCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        pointerCircle.setAttribute('cx', centerX);
-        pointerCircle.setAttribute('cy', centerY);
-        pointerCircle.setAttribute('r', 6);
-        pointerCircle.setAttribute('fill', '#333');
-        
-        // Pointer tip (triangle)
         const pointerTip = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-        const tipX = centerX;
-        const tipY = centerY - radius + 10;
-        pointerTip.setAttribute('points', `${tipX},${tipY} ${tipX-5},${tipY+10} ${tipX+5},${tipY+10}`);
+        pointerTip.setAttribute('points', this.buildTipPoints(end.x, end.y, 270));
         pointerTip.setAttribute('fill', '#333');
         
         pointerGroup.appendChild(pointerLine);
-        pointerGroup.appendChild(pointerCircle);
         pointerGroup.appendChild(pointerTip);
         
         this.pointer = pointerGroup;
         this.svg.appendChild(pointerGroup);
+    }
+
+    buildTipPoints(tipX, tipY, angle) {
+        const tipLen = 7;
+        const tipHalf = 3.5;
+        const rad = (angle - 90) * Math.PI / 180;
+        const bx = tipX - tipLen * Math.cos(rad);
+        const by = tipY - tipLen * Math.sin(rad);
+        const px = -Math.sin(rad) * tipHalf;
+        const py = Math.cos(rad) * tipHalf;
+        return `${tipX},${tipY} ${bx + px},${by + py} ${bx - px},${by - py}`;
     }
     
     createScoreDisplay() {
@@ -412,25 +417,22 @@ class CreditScoreArc {
     
     setPointerPosition(angle, centerX, centerY) {
         const radius = this.options.radius;
-        const endPoint = this.polarToCartesian(centerX, centerY, radius - 10, angle);
+        const outerR = radius - 6;
+        const innerR = radius * 0.62;
+        const startPoint = this.polarToCartesian(centerX, centerY, innerR, angle);
+        const endPoint = this.polarToCartesian(centerX, centerY, outerR, angle);
         
-        // Update pointer line
         const pointerLine = this.pointer.querySelector('line');
+        pointerLine.setAttribute('x1', startPoint.x);
+        pointerLine.setAttribute('y1', startPoint.y);
         pointerLine.setAttribute('x2', endPoint.x);
         pointerLine.setAttribute('y2', endPoint.y);
         
-        // Update pointer tip
         const pointerTip = this.pointer.querySelector('polygon');
-        const tipPoints = [
-            `${endPoint.x},${endPoint.y}`,
-            `${endPoint.x - 5 * Math.cos((angle - 60) * Math.PI / 180)},${endPoint.y - 5 * Math.sin((angle - 60) * Math.PI / 180)}`,
-            `${endPoint.x - 5 * Math.cos((angle + 60) * Math.PI / 180)},${endPoint.y - 5 * Math.sin((angle + 60) * Math.PI / 180)}`
-        ].join(' ');
-        pointerTip.setAttribute('points', tipPoints);
+        pointerTip.setAttribute('points', this.buildTipPoints(endPoint.x, endPoint.y, angle));
     }
     
     getCurrentPointerAngle() {
-        // Calculate current pointer angle from position
         const pointerLine = this.pointer.querySelector('line');
         const x1 = parseFloat(pointerLine.getAttribute('x1'));
         const y1 = parseFloat(pointerLine.getAttribute('y1'));
