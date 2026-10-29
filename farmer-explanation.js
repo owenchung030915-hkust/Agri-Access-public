@@ -77,14 +77,16 @@ class FarmerExplanationComponent {
             return {
                 summary: '',
                 riskAssessment: this.getCreditDescription(creditScore, this.language),
-                recommendations: fallbackRecs
+                recommendations: fallbackRecs,
+                provider: 'local-fallback'
             };
         }
         const recs = this.normalizeRecommendations(explanation.recommendations, fallbackRecs);
         return {
             summary: explanation.summary || '',
             riskAssessment: explanation.riskAssessment || explanation.credit_explanation || this.getCreditDescription(creditScore, this.language),
-            recommendations: recs
+            recommendations: recs,
+            provider: explanation.provider || ''
         };
     }
 
@@ -304,13 +306,14 @@ class FarmerExplanationComponent {
                     </div>
                 </div>
                 <p class="header-subtitle">${this.language === 'id' ? 'Rekomendasi berdasarkan analisis data pertanian' : 'Recommendations based on agricultural data analysis'}</p>
+                ${explanation?.provider ? `<p class="header-provider" style="margin-top:6px;font-size:12px;color:var(--muted,#4d6157);">Source: ${explanation.provider}${content.recommendations?.length ? ` · ${content.recommendations.length} recommendations` : ''}</p>` : ''}
             </div>
             
             <div class="farmer-explanation-content">
-                <!-- Recommendations Only -->
+                ${explanation?.riskAssessment ? `<p class="farmer-summary" style="margin:0 0 14px;color:var(--muted,#4d6157);font-size:0.95rem;line-height:1.45;">${explanation.riskAssessment}</p>` : ''}
                 <div class="farmer-section recommendations">
                     <div class="recommendations-list">
-                        ${content.recommendations.map(rec => `
+                        ${(content.recommendations || []).map(rec => `
                             <div class="recommendation-item">
                                 <div class="rec-header">
                                     <span class="rec-icon">${rec.icon || ''}</span>
@@ -318,7 +321,7 @@ class FarmerExplanationComponent {
                                     <span class="rec-priority ${rec.priority}">${rec.priorityText || this.getPriorityText(rec.priority)}</span>
                                 </div>
                                 <div class="rec-description">${rec.description}</div>
-                                <div class="rec-timeline">${rec.timeline}</div>
+                                <div class="rec-timeline">${rec.timeline}${rec.impact ? ` · ${rec.impact}` : ''}</div>
                             </div>
                         `).join('')}
                     </div>
@@ -694,7 +697,8 @@ class LLMTranslationEngine {
     
     async getGeminiExplanation(technicalData, targetLanguage, farmContext, shapData = null, weatherData = null, satelliteData = null) {
         const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
-        const timer = controller ? setTimeout(() => controller.abort(), 22000) : null;
+        // Allow HKUST GenAI enough time (backend timeout ~28s)
+        const timer = controller ? setTimeout(() => controller.abort(), 35000) : null;
         try {
             const response = await fetch(this.apiEndpoint, {
                 method: 'POST',
@@ -717,10 +721,14 @@ class LLMTranslationEngine {
 
             // Prefer explanation even on non-2xx if the API attached fallback content
             if (result.explanation) {
-                return this.formatGeminiResponse(result.explanation, targetLanguage);
+                const formatted = this.formatGeminiResponse(result.explanation, targetLanguage);
+                formatted.provider = result.provider || formatted.provider || result.explanation.provider || '';
+                return formatted;
             }
             if (result.fallback) {
-                return this.formatGeminiResponse(result.fallback, targetLanguage);
+                const formatted = this.formatGeminiResponse(result.fallback, targetLanguage);
+                formatted.provider = result.provider || 'local-fallback';
+                return formatted;
             }
             if (!response.ok) {
                 throw new Error(result.error || `API request failed: ${response.status}`);
@@ -732,11 +740,44 @@ class LLMTranslationEngine {
     }
     
     formatGeminiResponse(explanation, language) {
-        // Format the Gemini response to match the expected structure
+        const data = explanation || {};
+        let recommendations = Array.isArray(data.recommendations) ? data.recommendations.slice() : [];
+
+        // HKUST GenAI historically returned bullet lists instead of recommendations[]
+        const asRec = (text, priority, timeline) => {
+            const clean = String(text || '').replace(/^[\-\*\d\.\)\s]+/, '').trim();
+            if (!clean) return null;
+            const title = clean.split('.')[0].trim().slice(0, 72);
+            return {
+                title: title || clean.slice(0, 48),
+                description: clean,
+                priority,
+                timeline,
+                impact: language === 'id' ? 'Meningkatkan kesiapan kredit' : 'Improves loan readiness'
+            };
+        };
+
+        if (recommendations.length < 3) {
+            (data.what_to_improve || []).forEach((item) => {
+                const rec = asRec(item, 'high', language === 'id' ? '0-30 hari' : '0-30 days');
+                if (rec) recommendations.push(rec);
+            });
+            (data.next_steps || []).forEach((item) => {
+                const rec = asRec(item, 'medium', language === 'id' ? '1-3 bulan' : '1-3 months');
+                if (rec) recommendations.push(rec);
+            });
+            (data.what_went_well || []).slice(0, 2).forEach((item) => {
+                const prefix = language === 'id' ? 'Pertahankan: ' : 'Keep doing: ';
+                const rec = asRec(prefix + item, 'low', language === 'id' ? 'Berkelanjutan' : 'Ongoing');
+                if (rec) recommendations.push(rec);
+            });
+        }
+
         return {
-            summary: explanation.summary || '',
-            riskAssessment: explanation.credit_explanation || '',
-            recommendations: explanation.recommendations || []
+            summary: data.summary || data.bank_message || '',
+            riskAssessment: data.credit_explanation || data.riskAssessment || data.bank_message || '',
+            recommendations,
+            provider: data.provider || ''
         };
     }
     
