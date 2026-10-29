@@ -406,60 +406,61 @@ window.useMyLocationForFarm = useMyLocationForFarm;
 // ===== DEMO LOCATIONS AND USER INTERFACE =====
 
 function loadDemoLocation(farmer) {
+    // Rural agri belts only — keep in sync with PILOT_FARMS in basel_iii_api.py
     const demos = {
         siti: {
             name: 'Ibu Siti Nurhasanah',
-            lat: -6.3276,  // Indramayu, West Java - major rice farming area
-            lon: 108.3249,
+            lat: -6.3850,  // Kertasemaya–Juntinyuat paddy belt (not Indramayu kota)
+            lon: 108.3190,
             size: 1.5,
             crop: 'rice'
         },
         budi: {
-            name: 'Pak Budi Santoso', 
-            lat: -2.1000,  // Riau Province, Sumatra - major palm oil region
-            lon: 102.3000,
+            name: 'Pak Budi Santoso',
+            lat: 0.2850,   // Pelalawan palm estate corridor (east of Pekanbaru)
+            lon: 102.0500,
             size: 3.2,
             crop: 'palm oil'
         },
         ratna: {
             name: 'Ibu Ratna Sari',
-            lat: -7.3179,  // Temanggung, Central Java - famous coffee farming area
-            lon: 110.1779,
+            lat: -7.2520,  // Ngadirejo highland coffee (not Temanggung kota)
+            lon: 110.0580,
             size: 0.8,
             crop: 'coffee'
         },
         agus: {
             name: 'Pak Agus Pratama',
-            lat: -3.0027,  // Musi Banyuasin, South Sumatra - mixed estate farming
-            lon: 104.7500,
+            lat: -3.8000,  // Lahat highland cocoa (not Palembang)
+            lon: 103.5400,
             size: 4.6,
             crop: 'cocoa'
         },
         dewi: {
             name: 'Ibu Dewi Kartika',
-            lat: -5.1180,  // Lampung - coffee + food crop ecosystem
-            lon: 105.3060,
+            lat: -5.0400,  // West Lampung / Liwa coffee highlands
+            lon: 104.1500,
             size: 2.1,
             crop: 'coffee'
         },
         hasan: {
             name: 'Pak Hasan Basri',
-            lat: -4.0050,  // South Sulawesi - cocoa region
-            lon: 119.6500,
+            lat: -3.4320,  // Polewali Mandar cocoa cluster (not Makassar/Parepare)
+            lon: 119.3450,
             size: 3.0,
             crop: 'cocoa'
         },
         made: {
             name: 'Pak Made Suardana',
-            lat: -8.6500,  // Lombok, NTB - dryland rice and rubber
-            lon: 117.3600,
+            lat: -8.7050,  // Central Lombok dryland near Praya (was wrongly on Sumbawa lon)
+            lon: 116.2950,
             size: 1.9,
             crop: 'rice'
         },
         yusuf: {
             name: 'Pak Yusuf Mahendra',
-            lat: 0.2000,   // East Kalimantan - large palm/rubber estates
-            lon: 117.2000,
+            lat: -0.2800,  // Kutai Kartanegara estate belt (west of Samarinda)
+            lon: 117.0200,
             size: 9.5,
             crop: 'palm oil'
         }

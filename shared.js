@@ -13,57 +13,57 @@ function sharedApiUrl(path) {
 const DEMO_LOCATIONS = {
     siti: {
         name: 'Ibu Siti Nurhasanah',
-        lat: -6.3276,
-        lon: 108.3249,
+        lat: -6.3850,
+        lon: 108.3190,
         size: 1.5,
         crop: 'rice'
     },
     budi: {
         name: 'Pak Budi Santoso',
-        lat: -2.1000,
-        lon: 102.3000,
+        lat: 0.2850,
+        lon: 102.0500,
         size: 3.2,
         crop: 'palm oil'
     },
     ratna: {
         name: 'Ibu Ratna Sari',
-        lat: -7.3179,
-        lon: 110.1779,
+        lat: -7.2520,
+        lon: 110.0580,
         size: 0.8,
         crop: 'coffee'
     },
     agus: {
         name: 'Pak Agus Pratama',
-        lat: -3.0027,
-        lon: 104.7500,
+        lat: -3.8000,
+        lon: 103.5400,
         size: 4.6,
         crop: 'cocoa'
     },
     dewi: {
         name: 'Ibu Dewi Kartika',
-        lat: -5.1180,
-        lon: 105.3060,
+        lat: -5.0400,
+        lon: 104.1500,
         size: 2.1,
         crop: 'coffee'
     },
     hasan: {
         name: 'Pak Hasan Basri',
-        lat: -4.0050,
-        lon: 119.6500,
+        lat: -3.4320,
+        lon: 119.3450,
         size: 3.0,
         crop: 'cocoa'
     },
     made: {
         name: 'Pak Made Suardana',
-        lat: -8.6500,
-        lon: 117.3600,
+        lat: -8.7050,
+        lon: 116.2950,
         size: 1.9,
         crop: 'rice'
     },
     yusuf: {
         name: 'Pak Yusuf Mahendra',
-        lat: 0.2000,
-        lon: 117.2000,
+        lat: -0.2800,
+        lon: 117.0200,
         size: 9.5,
         crop: 'palm oil'
     }
