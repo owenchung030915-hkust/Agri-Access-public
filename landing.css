@@ -647,7 +647,8 @@ a.inline {
 
 .team-grid-founders {
     grid-template-columns: repeat(3, 1fr);
-    max-width: 52rem;
+    max-width: 56rem;
+    gap: 28px 32px;
 }
 
 .team-member {
@@ -658,13 +659,35 @@ a.inline {
 .team-member strong {
     display: block;
     font-family: var(--font-display);
-    font-size: 1.05rem;
+    font-size: 1.15rem;
     margin-bottom: 4px;
 }
 
-.team-member span {
+.team-member .team-role {
+    display: block;
+    color: var(--leaf);
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.team-member .team-bio {
     color: var(--muted);
+    font-size: 0.92rem;
+    line-height: 1.45;
+    margin: 0 0 12px;
+}
+
+.team-member .team-link {
+    color: var(--forest);
     font-size: 0.88rem;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.team-member .team-link:hover {
+    color: var(--leaf);
 }
 
 /* Photo mosaic */
