@@ -241,6 +241,7 @@ function setFarmLocation(lat, lon, opts) {
 
     updateFarmMarker();
     clearResults();
+    if (typeof window.refreshSoilPanel === 'function') window.refreshSoilPanel();
 
     const hint = document.getElementById('mapPickHint');
     if (hint) {
@@ -785,7 +786,7 @@ async function analyzeWithRealNASAData() {
         resetWorkflowStatus();
         updateWorkflowStatus(1, 'completed');
         updateWorkflowStatus(2, 'active');
-        loadingTitle.textContent = 'Basel III Credit Analysis';
+        loadingTitle.textContent = 'AgriRisk Intelligence Engine';
         loadingStatus.textContent = 'Waiting for ML model to become ready...';
 
         const modelStatus = await waitForModelReady();
@@ -837,7 +838,7 @@ async function analyzeWithRealNASAData() {
         // Update workflow status progression
         updateWorkflowStatus(2, 'completed');
         updateWorkflowStatus(3, 'active');
-        if (loadingStatus) loadingStatus.textContent = 'Calculating Basel III risk parameters...';
+        if (loadingStatus) loadingStatus.textContent = 'Quantifying credit risk from satellite and farm data...';
         
         await new Promise(resolve => setTimeout(resolve, 200));
         
@@ -876,11 +877,11 @@ async function analyzeWithRealNASAData() {
     } catch (error) {
         console.error('Analysis error:', error);
         
-        let errorMessage = 'Error during Basel III analysis: ';
+        let errorMessage = 'Error during credit analysis: ';
         if (error.name === 'AbortError') {
             errorMessage += 'Request timed out. Please try again.';
         } else if ((error.message || '').includes('fetch')) {
-            errorMessage += 'Unable to connect to Basel III API. Please check if the server is running.';
+            errorMessage += 'Unable to connect to the AgriRisk service. Please check if the server is running.';
         } else {
             errorMessage += error.message;
         }
@@ -915,13 +916,13 @@ function displayAnalysisResults(result) {
         }, 100);
         
         // Update data sources status panel with Basel III results
-        document.getElementById('geeResult').textContent = ' Connected (Basel III)';
+        document.getElementById('geeResult').textContent = ' Connected';
         document.getElementById('nasaDataResult').textContent = ' Integrated (Cropland + Vegetation)';
         
         // Weather API status
         const hasWeatherData = result.weather_analysis && result.weather_analysis.current_conditions;
         document.getElementById('weatherApiResult').textContent = hasWeatherData ? 
-            ' Basel III Weather API' : ' No weather data';
+            ' Climate data included' : ' No weather data';
         
         // Display Basel III results
         displayBaselIIIResults(result.basel_iii_results, result.formatted_results);
@@ -1097,8 +1098,8 @@ function displayAnalysisResults(result) {
         if (defaultInfo) defaultInfo.style.display = 'none';
         
         // Update failure panel with Basel III error details
-        document.getElementById('apiError').textContent = result.error || 'Basel III analysis failed';
-        document.getElementById('gfsadError').textContent = 'Basel III API connection failed';
+        document.getElementById('apiError').textContent = result.error || 'Credit analysis failed';
+        document.getElementById('gfsadError').textContent = 'Credit scoring service connection failed';
         document.getElementById('modisError').textContent = 'Credit scoring model unavailable';
         document.getElementById('recommendation').textContent = 'Check server connection and try again';
         
@@ -1395,7 +1396,7 @@ function displayWeatherAnalysis(weatherAnalysis) {
     }
     
     document.getElementById('weatherDataSources').textContent = 
-        'Basel III Weather API + Satellite Integration';
+        'Climate data and satellite features';
 }
 
 function updateLiveWeatherPanel(weatherAnalysis) {

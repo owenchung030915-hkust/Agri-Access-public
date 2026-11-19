@@ -170,6 +170,11 @@
             </div>
             
             <div class="results-panel">
+                <div class="panel-tabs" role="tablist">
+                    <button type="button" class="panel-tab active" id="creditTabBtn" role="tab" aria-selected="true">Credit assessment</button>
+                    <button type="button" class="panel-tab" id="soilTabBtn" role="tab" aria-selected="false">Soil analysis</button>
+                </div>
+                <div id="creditTabPanel">
                 <div style="background: var(--forest); color: white; padding: 20px; border-radius: 8px; margin-bottom: 25px; text-align: center;">
                     <h2 style="margin: 0; font-size: 1.3em; font-family: var(--font-display);">Credit Assessment</h2>
                     <p style="margin: 5px 0 0 0; opacity: 0.9; font-size: 0.9em;">Satellite, weather, and farm evidence for banker review</p>
@@ -221,7 +226,7 @@
                         
                         <!-- Basel III Risk Parameters - Collapsible -->
                         <details class="collapsible-section" style="margin-top: 20px;">
-                            <summary style="cursor: pointer; font-weight: 600; color: #1976D2;">Basel III Risk Parameters</summary>
+                            <summary style="cursor: pointer; font-weight: 600; color: #1976D2;">Credit risk parameters (PD, LGD, EAD)</summary>
                             <div class="basel-metrics-display" style="margin: 15px 0; padding: 10px; background: #f8f9fa; border-radius: 8px;">
                                 <div class="basel-metric">
                                     <div class="basel-label">Expected Credit Loss</div>
@@ -354,7 +359,45 @@
                 <div id="farmerExplanationContainer" class="farmer-explanation-wrapper">
                     <!-- Farmer explanation content will be dynamically generated here -->
                 </div>
-                
+                </div>
+
+                <div id="soilTabPanel" class="hidden">
+                    <div style="background: var(--forest); color: white; padding: 20px; border-radius: 8px; margin-bottom: 25px; text-align: center;">
+                        <h2 style="margin: 0; font-size: 1.3em; font-family: var(--font-display);">Soil analysis</h2>
+                        <p style="margin: 5px 0 0 0; opacity: 0.9; font-size: 0.9em;">Field chemistry for the farm on the map. Blank until a sample is attached.</p>
+                    </div>
+                    <div class="analysis-result">
+                        <h4 id="soilFarmTitle">Indramayu Rice Farm</h4>
+                        <p id="soilFarmMeta" style="font-size: 12px; color: var(--muted); margin-bottom: 12px;"></p>
+                        <div class="key-metrics">
+                            <div class="metric-card">
+                                <div class="metric-label">Soil pH</div>
+                                <div class="metric-value">—</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-label">NPK</div>
+                                <div class="metric-value">—</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-label">Moisture</div>
+                                <div class="metric-value">—</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-label">Lime requirement</div>
+                                <div class="metric-value">—</div>
+                            </div>
+                        </div>
+                        <p style="font-size: 12px; color: var(--muted);">No lab or probe sample is on file, so these readings are not estimated.</p>
+                    </div>
+                    <div class="analysis-result">
+                        <h4>Jun–Aug 2026 temperature</h4>
+                        <p id="soilSeasonNote" style="font-size: 13px; line-height: 1.45;"></p>
+                    </div>
+                    <div class="analysis-result">
+                        <h4>Evidence still needed</h4>
+                        <div id="soilChecklist"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -408,6 +451,69 @@
     <!-- Agri-Accept Application -->
     <script src="app.js"></script>
     <script>
+        (function () {
+            const soilFarms = [
+                { id: 'siti', label: 'Indramayu Rice Farm', lat: -6.385, lon: 108.319, season: 'Jun–Aug 2026 mean at the nearest cell was 28.1°C (26.9–29.2). None of the 90 days crossed the rice ceiling of 30°C. Hottest day 29.2°C. Rainfall is not in this file, so the window is not a full season verdict.' },
+                { id: 'budi', label: 'Riau Palm Oil Plantation', lat: 0.285, lon: 102.05, season: 'Jun–Aug 2026 mean was 27.0°C (26.1–28.3). None of the 90 days crossed the palm ceiling of 32°C. Rainfall is not in this file.' },
+                { id: 'ratna', label: 'Temanggung Coffee Farm', lat: -7.252, lon: 110.058, season: 'The nearest 0.25° cell averaged 25.3°C and sat above 25°C on 63 of 90 days. That cell is coarser than the highland farm, so the count is not a credit flag.' },
+                { id: 'agus', label: 'South Sumatra Cocoa Farm', lat: -3.8, lon: 103.54, season: 'Jun–Aug 2026 mean was 26.6°C (25.8–27.5). None of the 90 days crossed the cocoa ceiling of 28°C. Rainfall is not in this file.' },
+                { id: 'dewi', label: 'Lampung Coffee Cooperative', lat: -5.04, lon: 104.15, season: 'The nearest 0.25° cell averaged 26.2°C and sat above 25°C on all 90 days. That cell is coarser than the highland farm, so the count is not a credit flag.' },
+                { id: 'hasan', label: 'South Sulawesi Cocoa Cluster', lat: -3.432, lon: 119.345, season: 'This farm was not one of the five points summarized from the Jun–Aug 2026 temperature file.' },
+                { id: 'made', label: 'Lombok Dryland Rice Farm', lat: -8.705, lon: 116.295, season: 'This farm was not one of the five points summarized from the Jun–Aug 2026 temperature file.' },
+                { id: 'yusuf', label: 'East Kalimantan Estate', lat: -0.28, lon: 117.02, season: 'This farm was not one of the five points summarized from the Jun–Aug 2026 temperature file.' }
+            ];
+
+            function refreshSoilPanel() {
+                const name = (document.getElementById('farmerName').value || 'This farm').trim();
+                const crop = document.getElementById('primaryCrop').value || '';
+                const size = document.getElementById('farmSize').value || '';
+                const lat = parseFloat(document.getElementById('latitude').value);
+                const lon = parseFloat(document.getElementById('longitude').value);
+                let match = null;
+                let best = 0.2;
+                soilFarms.forEach((farm) => {
+                    const distance = Math.hypot(farm.lat - lat, farm.lon - lon);
+                    if (distance < best) {
+                        best = distance;
+                        match = farm;
+                    }
+                });
+                document.getElementById('soilFarmTitle').textContent = match ? match.label : name;
+                document.getElementById('soilFarmMeta').textContent = [name, crop, size ? size + ' ha' : ''].filter(Boolean).join(' · ');
+                document.getElementById('soilSeasonNote').textContent = match
+                    ? match.season
+                    : 'This pin was not one of the points summarized from the Jun–Aug 2026 temperature file.';
+                const who = match ? match.label : name;
+                const items = [
+                    ['Collect a pH sample', 'Lime rate stays blank until a lab buffer pH is attached to ' + who + '.'],
+                    ['Sample moisture and NPK', 'Take them on a dry access day. A wet week makes the reading hard to use.'],
+                    ['Leave the credit file unchanged', 'These gaps are field evidence. They do not move the score or the bank’s decision.']
+                ];
+                document.getElementById('soilChecklist').innerHTML = items.map(([title, body]) =>
+                    '<p style="margin:0 0 10px;font-size:13px;line-height:1.45;"><strong>' + title + '</strong><br>' + body + '</p>'
+                ).join('');
+            }
+
+            function showResultsTab(which) {
+                const soil = which === 'soil';
+                document.getElementById('soilTabPanel').classList.toggle('hidden', !soil);
+                document.getElementById('creditTabPanel').classList.toggle('hidden', soil);
+                document.getElementById('soilTabBtn').classList.toggle('active', soil);
+                document.getElementById('creditTabBtn').classList.toggle('active', !soil);
+                document.getElementById('soilTabBtn').setAttribute('aria-selected', soil ? 'true' : 'false');
+                document.getElementById('creditTabBtn').setAttribute('aria-selected', soil ? 'false' : 'true');
+                if (soil) refreshSoilPanel();
+            }
+
+            window.refreshSoilPanel = refreshSoilPanel;
+            document.getElementById('soilTabBtn').addEventListener('click', () => showResultsTab('soil'));
+            document.getElementById('creditTabBtn').addEventListener('click', () => showResultsTab('credit'));
+            ['farmerName', 'primaryCrop', 'farmSize'].forEach((id) => {
+                const field = document.getElementById(id);
+                if (field) field.addEventListener('change', refreshSoilPanel);
+            });
+            refreshSoilPanel();
+        })();
         (async function guardPilotAuth() {
             const token = (typeof window.agriGetAccessToken === 'function') ? window.agriGetAccessToken() : '';
             if (!token) {
