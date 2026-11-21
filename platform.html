@@ -364,7 +364,7 @@
                 <div id="soilTabPanel" class="hidden">
                     <div style="background: var(--forest); color: white; padding: 20px; border-radius: 8px; margin-bottom: 25px; text-align: center;">
                         <h2 style="margin: 0; font-size: 1.3em; font-family: var(--font-display);">Soil analysis</h2>
-                        <p style="margin: 5px 0 0 0; opacity: 0.9; font-size: 0.9em;">Field chemistry for the farm on the map. Blank until a sample is attached.</p>
+                        <p style="margin: 5px 0 0 0; opacity: 0.9; font-size: 0.9em;">Model estimate for the farm on the map. Not a laboratory sample.</p>
                     </div>
                     <div class="analysis-result">
                         <h4 id="soilFarmTitle">Indramayu Rice Farm</h4>
@@ -372,22 +372,22 @@
                         <div class="key-metrics">
                             <div class="metric-card">
                                 <div class="metric-label">Soil pH</div>
-                                <div class="metric-value">—</div>
+                                <div class="metric-value" id="soilPh">…</div>
                             </div>
                             <div class="metric-card">
-                                <div class="metric-label">NPK</div>
-                                <div class="metric-value">—</div>
+                                <div class="metric-label">NPK mg/kg</div>
+                                <div class="metric-value" id="soilNpk">…</div>
                             </div>
                             <div class="metric-card">
                                 <div class="metric-label">Moisture</div>
-                                <div class="metric-value">—</div>
+                                <div class="metric-value" id="soilMoisture">…</div>
                             </div>
                             <div class="metric-card">
                                 <div class="metric-label">Lime requirement</div>
-                                <div class="metric-value">—</div>
+                                <div class="metric-value" id="soilLime">…</div>
                             </div>
                         </div>
-                        <p style="font-size: 12px; color: var(--muted);">No lab or probe sample is on file, so these readings are not estimated.</p>
+                        <p id="soilEstimateNote" style="font-size: 12px; color: var(--muted); line-height: 1.45;"></p>
                     </div>
                     <div class="analysis-result">
                         <h4>Jun–Aug 2026 temperature</h4>
@@ -485,13 +485,85 @@
                     : 'This pin was not one of the points summarized from the Jun–Aug 2026 temperature file.';
                 const who = match ? match.label : name;
                 const items = [
-                    ['Collect a pH sample', 'Lime rate stays blank until a lab buffer pH is attached to ' + who + '.'],
-                    ['Sample moisture and NPK', 'Take them on a dry access day. A wet week makes the reading hard to use.'],
-                    ['Leave the credit file unchanged', 'These gaps are field evidence. They do not move the score or the bank’s decision.']
+                    ['Confirm the pH estimate', 'A lab buffer pH is still needed before applying lime on ' + who + '.'],
+                    ['Sample moisture and NPK', 'The model numbers are a starting point. Take them on a dry access day.'],
+                    ['Leave the credit file unchanged', 'This estimate does not move the score or the bank’s decision.']
                 ];
                 document.getElementById('soilChecklist').innerHTML = items.map(([title, body]) =>
                     '<p style="margin:0 0 10px;font-size:13px;line-height:1.45;"><strong>' + title + '</strong><br>' + body + '</p>'
                 ).join('');
+                loadSoilEstimate();
+            }
+
+            let soilCacheKey = '';
+            let soilFetchId = 0;
+
+            function soilFarmKey() {
+                const lat = Number(document.getElementById('latitude').value);
+                const lon = Number(document.getElementById('longitude').value);
+                const crop = document.getElementById('primaryCrop').value || '';
+                if (!Number.isFinite(lat) || !Number.isFinite(lon)) return '';
+                return lat.toFixed(4) + '|' + lon.toFixed(4) + '|' + crop;
+            }
+
+            function showSoilPending() {
+                ['soilPh', 'soilNpk', 'soilMoisture', 'soilLime'].forEach((id) => {
+                    document.getElementById(id).textContent = '…';
+                });
+                document.getElementById('soilEstimateNote').textContent = 'Asking the model for a soil estimate…';
+            }
+
+            function showSoilEstimate(soil) {
+                const source = soil.source === 'gemini' ? 'Gemini' : 'HKUST GenAI';
+                document.getElementById('soilPh').textContent = Number(soil.ph).toFixed(1);
+                document.getElementById('soilNpk').textContent = soil.nitrogen_mg_kg + ' / ' + soil.phosphorus_mg_kg + ' / ' + soil.potassium_mg_kg;
+                document.getElementById('soilMoisture').textContent = soil.moisture_percent + '%';
+                document.getElementById('soilLime').textContent = Number(soil.lime_t_ha).toFixed(1) + ' t/ha';
+                const summary = soil.summary ? soil.summary + ' ' : '';
+                document.getElementById('soilEstimateNote').textContent = summary + 'Estimate from ' + source + '. Not a laboratory sample.';
+            }
+
+            function showSoilUnavailable(message) {
+                ['soilPh', 'soilNpk', 'soilMoisture', 'soilLime'].forEach((id) => {
+                    document.getElementById(id).textContent = '—';
+                });
+                document.getElementById('soilEstimateNote').textContent = message || 'The model estimate is unavailable right now.';
+            }
+
+            async function loadSoilEstimate() {
+                const key = soilFarmKey();
+                if (!key) {
+                    showSoilUnavailable('Set a farm location to estimate soil chemistry.');
+                    return;
+                }
+                if (key === soilCacheKey) return;
+                const requestId = ++soilFetchId;
+                showSoilPending();
+                try {
+                    const response = await fetch(window.agriApiUrl('/api/soil-estimate'), {
+                        method: 'POST',
+                        credentials: 'include',
+                        headers: window.agriAuthHeaders(),
+                        body: JSON.stringify({
+                            farmerName: document.getElementById('farmerName').value,
+                            latitude: Number(document.getElementById('latitude').value),
+                            longitude: Number(document.getElementById('longitude').value),
+                            farmSize: Number(document.getElementById('farmSize').value) || 1,
+                            primaryCrop: document.getElementById('primaryCrop').value
+                        })
+                    });
+                    const data = await response.json().catch(() => ({}));
+                    if (requestId !== soilFetchId) return;
+                    if (!response.ok || !data.success || !data.soil) {
+                        showSoilUnavailable(data.error);
+                        return;
+                    }
+                    soilCacheKey = key;
+                    showSoilEstimate(data.soil);
+                } catch (err) {
+                    if (requestId !== soilFetchId) return;
+                    showSoilUnavailable('The model estimate is unavailable right now.');
+                }
             }
 
             function showResultsTab(which) {
