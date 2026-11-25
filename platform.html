@@ -220,7 +220,7 @@
                 <div class="analysis-result" id="creditEvidenceCard">
                     <h4>Land evidence</h4>
                     <p id="creditEvidenceSummary" class="evidence-use">Run the assessment to gather soil, rainfall, vegetation, prices, and hazards. You can then download the full analysis.</p>
-                    <p class="evidence-source">SoilGrids can take a minute. The 300–850 score stays the ensemble result, and these readings are written into the same file.</p>
+                    <p class="evidence-source">SoilGrids can take more than a minute. The 300–850 score stays the ensemble result, and these readings are written into the same file.</p>
                 </div>
                 
                 <div id="successResults" class="hidden">
@@ -437,7 +437,7 @@
                     </div>
                     <div class="analysis-result">
                         <h4>SoilGrids</h4>
-                        <p id="soilgridsSource" class="evidence-source">Loading the 250 m soil map…</p>
+                        <p id="soilgridsSource" class="evidence-source">Loading the 250 m soil map. This can take more than a minute.</p>
                         <div class="key-metrics">
                             <div class="metric-card">
                                 <div class="metric-label">pH water</div>
@@ -594,7 +594,7 @@
                     const node = document.getElementById(id);
                     if (node) node.textContent = '—';
                 });
-                document.getElementById('soilgridsSource').textContent = 'Open this tab, or run the assessment, to load SoilGrids. It can take a minute.';
+                document.getElementById('soilgridsSource').textContent = 'Open this tab, or run the assessment, to load SoilGrids. It can take more than a minute.';
                 document.getElementById('rainNote').textContent = 'Seasonal rainfall loads with the soil map.';
                 document.getElementById('ndviChart').innerHTML = '';
                 document.getElementById('ndviNote').textContent = 'The vegetation curve loads with the soil map.';
@@ -631,7 +631,7 @@
                 ['sgPh', 'sgSoc', 'sgN', 'sgClay'].forEach((id) => {
                     document.getElementById(id).textContent = '…';
                 });
-                document.getElementById('soilgridsSource').textContent = 'Loading the 250 m soil map…';
+                document.getElementById('soilgridsSource').textContent = 'Loading the 250 m soil map. This can take more than a minute.';
                 document.getElementById('rainNote').textContent = 'Loading the rainfall record…';
                 document.getElementById('ndviChart').innerHTML = '';
                 document.getElementById('ndviNote').textContent = 'Loading the vegetation record…';
