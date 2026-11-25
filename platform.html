@@ -12,6 +12,31 @@
     <link rel="stylesheet" href="tokens.css" />
     <link rel="stylesheet" href="shared.css" />
     <link rel="stylesheet" href="styles.css" />
+    <script>
+        (function () {
+            function deviceKind() {
+                var ua = navigator.userAgent || '';
+                var touch = navigator.maxTouchPoints > 1;
+                var iPad = /iPad/.test(ua) || (navigator.platform === 'MacIntel' && touch);
+                var phoneUA = /iPhone|iPod|Android.+Mobile|Windows Phone/.test(ua);
+                var w = window.innerWidth;
+                if (iPad) return 'tablet';
+                if (phoneUA) return 'phone';
+                if (w < 700) return 'phone';
+                if (w < 1180) return 'tablet';
+                return 'computer';
+            }
+            function apply() {
+                var next = deviceKind();
+                if (document.documentElement.getAttribute('data-device') === next) return;
+                document.documentElement.setAttribute('data-device', next);
+                window.dispatchEvent(new Event('agri-device-change'));
+            }
+            document.documentElement.setAttribute('data-device', deviceKind());
+            window.addEventListener('resize', apply);
+            window.addEventListener('orientationchange', apply);
+        })();
+    </script>
 </head>
 <body>
     <div class="header">
@@ -21,7 +46,7 @@
                 <a href="/" class="header-btn">Home</a>
                 <a href="/admin-approvals.html" class="header-btn">Approvals</a>
                 <a href="#" class="header-btn" id="logoutBtn">Logout</a>
-                <button type="button" onclick="document.documentElement.requestFullscreen()" class="header-btn">Present</button>
+                <button type="button" id="presentBtn" onclick="document.documentElement.requestFullscreen()" class="header-btn">Present</button>
             </div>
         </div>
         <p>Live pilot · bank-ready evidence — the bank keeps the decision</p>
@@ -31,9 +56,15 @@
         
     <div class="main-grid">
             <div class="control-panel">
+                <p class="quiz-intro">A few questions. The credit result appears after the last one.</p>
+                <div class="quiz-progress" id="quizProgress">
+                    <button type="button" class="quiz-dot active" data-step="1">1 · Farmer</button>
+                    <button type="button" class="quiz-dot" data-step="2">2 · Farm</button>
+                    <button type="button" class="quiz-dot" data-step="3">3 · Loan</button>
+                </div>
 
-                <h2 class="section-title" style="margin-top: 25px;">Farm Information
-                </h2>
+                <div class="quiz-step is-current" data-step="1">
+                <h2 class="section-title">Farm Information</h2>
                 
                 <div class="form-group">
                     <label for="farmerName">Farmer Name</label>
@@ -63,7 +94,10 @@
                     <input type="number" id="longitude" step="0.0001" placeholder="108.3190" value="108.3190">
                 </div>
                 <div id="pickedPlaceLabel" class="picked-place-label" hidden></div>
-                
+                </div>
+
+                <div class="quiz-step" data-step="2">
+                <h2 class="section-title">The farm</h2>
                 <div class="form-group">
                     <label for="farmSize">Farm Size (hectares)</label>
                     <input type="number" id="farmSize" step="0.1" placeholder="1.5" value="1.5">
@@ -79,10 +113,23 @@
                         <option value="rubber">Rubber (Karet)</option>
                     </select>
                 </div>
-                
-                
-                <h3 class="section-subtitle" style="margin-top: 25px; color: var(--forest); font-size: 1.1em;">Loan Application
-                </h3>
+
+                <div class="demo-locations">
+                    <h4>Or start from a sample farm</h4>
+                    <button class="demo-btn" type="button" onclick="loadDemoLocation('siti')">Indramayu Rice Farm</button>
+                    <button class="demo-btn" type="button" onclick="loadDemoLocation('budi')">Riau Palm Oil Plantation</button>
+                    <button class="demo-btn" type="button" onclick="loadDemoLocation('ratna')">Temanggung Coffee Farm</button>
+                    <button class="demo-btn" type="button" onclick="loadDemoLocation('agus')">South Sumatra Cocoa Farm</button>
+                    <button class="demo-btn" type="button" onclick="loadDemoLocation('dewi')">Lampung Coffee Cooperative</button>
+                    <button class="demo-btn" type="button" onclick="loadDemoLocation('hasan')">South Sulawesi Cocoa Cluster</button>
+                    <button class="demo-btn" type="button" onclick="loadDemoLocation('made')">Lombok Dryland Rice Farm</button>
+                    <button class="demo-btn" type="button" onclick="loadDemoLocation('yusuf')">East Kalimantan Estate</button>
+                    <div style="font-size: 10px; color: var(--muted, #666); margin-top: 5px;">Pins sit in rural paddies, highlands, and estate belts — not city centres</div>
+                </div>
+                </div>
+
+                <div class="quiz-step" data-step="3">
+                <h2 class="section-title">Loan Application</h2>
                 <p style="font-size: 12px; color: var(--muted); margin-bottom: 15px;">Credit application details and loan requirements
                 </p>
                 
@@ -120,25 +167,14 @@
                     </select>
                 </div>
                 
-                <div class="demo-locations">
-    <h4>Indonesian Farm Locations</h4>
-                    <button class="demo-btn" onclick="loadDemoLocation('siti')">Indramayu Rice Farm</button>
-                    <button class="demo-btn" onclick="loadDemoLocation('budi')">Riau Palm Oil Plantation</button>
-                    <button class="demo-btn" onclick="loadDemoLocation('ratna')">Temanggung Coffee Farm</button>
-                    <button class="demo-btn" onclick="loadDemoLocation('agus')">South Sumatra Cocoa Farm</button>
-                    <button class="demo-btn" onclick="loadDemoLocation('dewi')">Lampung Coffee Cooperative</button>
-                    <button class="demo-btn" onclick="loadDemoLocation('hasan')">South Sulawesi Cocoa Cluster</button>
-                    <button class="demo-btn" onclick="loadDemoLocation('made')">Lombok Dryland Rice Farm</button>
-                    <button class="demo-btn" onclick="loadDemoLocation('yusuf')">East Kalimantan Estate</button>
-                    <div style="font-size: 10px; color: var(--muted, #666); margin-top: 5px;">Pins sit in rural paddies, highlands, and estate belts — not city centres
-                    </div>
-                </div>
-                
-                <button class="analyze-btn" id="analyzeButton" type="button">Analyze Credit Risk
+                <button class="analyze-btn" id="analyzeButton" type="button">See the credit result
                 </button>
-                
-                
-                
+                </div>
+
+                <div class="quiz-nav" id="quizNav">
+                    <button type="button" class="quiz-back" id="quizBack">Back</button>
+                    <button type="button" class="quiz-next" id="quizNext">Next</button>
+                </div>
             </div>
             
             <div class="map-container">
@@ -170,6 +206,7 @@
             </div>
             
             <div class="results-panel">
+                <button type="button" class="edit-answers-btn" id="editAnswersBtn">Change answers</button>
                 <div class="panel-tabs" role="tablist">
                     <button type="button" class="panel-tab active" id="creditTabBtn" role="tab" aria-selected="true">Credit assessment</button>
                     <button type="button" class="panel-tab" id="soilTabBtn" role="tab" aria-selected="false">Soil analysis</button>
@@ -882,6 +919,72 @@
             if (typeof window.agriSetAccessToken === 'function') window.agriSetAccessToken('');
             window.location.href = '/';
         });
+    </script>
+    <script>
+        (function () {
+            const steps = Array.from(document.querySelectorAll('.quiz-step'));
+            let current = 1;
+
+            function isPhone() {
+                return document.documentElement.dataset.device === 'phone';
+            }
+
+            function resizeMap() {
+                if (window.agriMap && typeof window.agriMap.invalidateSize === 'function') {
+                    setTimeout(() => window.agriMap.invalidateSize(), 80);
+                }
+            }
+
+            function render() {
+                const phone = isPhone();
+                steps.forEach((el) => {
+                    el.classList.toggle('is-current', Number(el.dataset.step) === current);
+                });
+                document.body.dataset.quizStep = String(current);
+                document.querySelectorAll('.quiz-dot').forEach((dot) => {
+                    const n = Number(dot.dataset.step);
+                    dot.classList.toggle('active', n === current);
+                    dot.classList.toggle('done', n < current);
+                });
+                if (phone) {
+                    window.scrollTo(0, 0);
+                    if (current === 1 || document.body.classList.contains('has-result')) resizeMap();
+                }
+            }
+
+            document.getElementById('quizNext')?.addEventListener('click', () => {
+                if (current < 3) current += 1;
+                render();
+            });
+            document.getElementById('quizBack')?.addEventListener('click', () => {
+                if (current > 1) current -= 1;
+                render();
+            });
+            document.querySelectorAll('.quiz-dot').forEach((dot) => {
+                dot.addEventListener('click', () => {
+                    if (!isPhone()) return;
+                    current = Number(dot.dataset.step);
+                    render();
+                });
+            });
+            document.getElementById('editAnswersBtn')?.addEventListener('click', () => {
+                document.body.classList.remove('has-result');
+                current = 1;
+                render();
+            });
+
+            window.showQuestionnaireResult = function () {
+                document.body.classList.add('has-result');
+                render();
+                const panel = document.querySelector('.results-panel');
+                if (panel) {
+                    setTimeout(() => panel.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
+                }
+            };
+
+            window.addEventListener('agri-device-change', render);
+            render();
+        })();
     </script>
 </body>
 </html>

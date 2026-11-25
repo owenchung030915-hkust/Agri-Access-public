@@ -81,6 +81,7 @@ function initializeMap() {
         }
         
         map = L.map('map').setView([-6.7749, 107.1389], 10);
+        window.agriMap = map;
         console.log(' Map object created:', map);
     } catch (error) {
         console.error(' Error creating map:', error);
@@ -719,12 +720,14 @@ async function analyzeWithRealNASAData() {
     const loadingStatus = document.getElementById('loadingStatus');
 
     _analyzeInFlight = true;
+    document.body.classList.add('is-analyzing');
     if (button) button.disabled = true;
     let progressTimer = null;
 
     const finishAnalyze = () => {
         if (progressTimer) clearInterval(progressTimer);
         _analyzeInFlight = false;
+        document.body.classList.remove('is-analyzing');
         if (button) button.disabled = false;
         if (loading) {
             loading.style.display = 'none';
@@ -900,11 +903,15 @@ async function analyzeWithRealNASAData() {
 // ===== RESULT DISPLAY FUNCTIONS =====
 
 function revealCreditResults() {
-    const panel = document.querySelector('.results-panel');
-    if (!panel || !window.matchMedia('(max-width: 900px)').matches) return;
-    setTimeout(() => {
-        panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 80);
+    const kind = document.documentElement.dataset.device;
+    if (kind === 'phone' && typeof window.showQuestionnaireResult === 'function') {
+        window.showQuestionnaireResult();
+        return;
+    }
+    if (kind === 'tablet') {
+        const panel = document.querySelector('.results-panel');
+        if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
 }
 
 function displayAnalysisResults(result) {

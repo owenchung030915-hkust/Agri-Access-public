@@ -149,91 +149,7 @@ body {
     }
 }
 
-@media (max-width: 900px) {
-    body {
-        height: auto;
-        min-height: 100dvh;
-        overflow-x: hidden;
-        overflow-y: auto;
-    }
-
-    .header {
-        padding: 18px 16px 16px;
-    }
-
-    .header-flex {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 12px;
-    }
-
-    .header h1 {
-        font-size: 1.85em;
-    }
-
-    .header-buttons {
-        flex-wrap: wrap;
-        gap: 8px;
-    }
-
-    .header-btn {
-        padding: 11px 14px;
-        font-size: 14px;
-    }
-
-    .main-grid {
-        display: flex;
-        flex-direction: column;
-        height: auto;
-        overflow: visible;
-        padding: 12px;
-        gap: 14px;
-    }
-
-    .control-panel,
-    .results-panel {
-        max-height: none;
-        overflow: visible;
-    }
-
-    .control-panel {
-        order: 1;
-    }
-
-    .results-panel {
-        order: 2;
-    }
-
-    .map-container {
-        order: 3;
-        min-height: 0;
-        grid-template-rows: 320px auto;
-        overflow: visible;
-    }
-
-    .map-section {
-        height: 320px;
-        min-height: 320px;
-    }
-
-    .satellite-images-section {
-        max-height: none;
-    }
-
-    .satellite-image {
-        height: 120px;
-    }
-
-    .panel-tab {
-        padding: 12px 14px;
-        font-size: 15px;
-    }
-
-    .map-pick-hint {
-        font-size: 13px;
-        padding: 12px 14px;
-    }
-}
+/* Phone, iPad, and computer layouts live at the end of this file. */
 
 .control-panel {
     padding: 22px;
@@ -1431,4 +1347,326 @@ body {
     background: var(--mist);
     border-radius: 8px;
     margin: 8px 0;
+}
+
+.quiz-intro,
+.quiz-progress,
+.quiz-nav,
+.edit-answers-btn {
+    display: none;
+}
+
+.quiz-dot,
+.quiz-back,
+.quiz-next,
+.edit-answers-btn {
+    font-family: var(--font-body);
+    cursor: pointer;
+}
+
+html[data-device="tablet"] body {
+    height: 100dvh;
+    overflow: hidden;
+}
+
+html[data-device="tablet"] .header-flex {
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+html[data-device="tablet"] .header-buttons {
+    flex-wrap: wrap;
+}
+
+html[data-device="tablet"] .main-grid {
+    display: grid;
+    grid-template-columns: minmax(300px, 380px) minmax(0, 1fr);
+    grid-template-rows: 380px minmax(0, 1fr);
+    height: auto;
+    min-height: 0;
+    overflow: hidden;
+    padding: 14px;
+    gap: 14px;
+}
+
+html[data-device="tablet"] .control-panel {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    max-height: none;
+    overflow-y: auto;
+}
+
+html[data-device="tablet"] .map-container {
+    grid-column: 2;
+    grid-row: 1;
+    min-height: 0;
+    grid-template-rows: 1fr auto;
+    overflow: hidden;
+}
+
+html[data-device="tablet"] .map-section {
+    height: auto;
+    min-height: 0;
+}
+
+html[data-device="tablet"] .satellite-images-section {
+    max-height: 150px;
+}
+
+html[data-device="tablet"] .results-panel {
+    grid-column: 2;
+    grid-row: 2;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+html[data-device="phone"] body {
+    height: auto;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding-bottom: 92px;
+}
+
+html[data-device="phone"] body.has-result,
+html[data-device="phone"] body.is-analyzing {
+    padding-bottom: 18px;
+}
+
+html[data-device="phone"] .header {
+    padding: 16px 16px 14px;
+}
+
+html[data-device="phone"] .header-flex {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+}
+
+html[data-device="phone"] .header h1 {
+    font-size: 1.7em;
+}
+
+html[data-device="phone"] .header-subtitle,
+html[data-device="phone"] #presentBtn {
+    display: none;
+}
+
+html[data-device="phone"] .header-buttons {
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+html[data-device="phone"] .header-btn {
+    padding: 10px 14px;
+    font-size: 14px;
+}
+
+html[data-device="phone"] .main-grid {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    overflow: visible;
+    padding: 12px;
+    gap: 12px;
+}
+
+html[data-device="phone"] .control-panel,
+html[data-device="phone"] .results-panel {
+    max-height: none;
+    overflow: visible;
+}
+
+html[data-device="phone"] .quiz-intro {
+    display: block;
+    margin: 0 0 12px;
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.45;
+}
+
+html[data-device="phone"] body.has-result .quiz-intro,
+html[data-device="phone"] body.has-result .quiz-progress,
+html[data-device="phone"] body.has-result .control-panel {
+    display: none;
+}
+
+html[data-device="phone"] .quiz-progress {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+html[data-device="phone"] .quiz-dot {
+    flex: 1;
+    border: 0;
+    border-radius: 999px;
+    padding: 10px 4px;
+    background: var(--mist);
+    color: var(--forest);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+html[data-device="phone"] .quiz-dot.active {
+    background: var(--forest);
+    color: #fff;
+}
+
+html[data-device="phone"] .quiz-dot.done {
+    background: var(--leaf);
+    color: #fff;
+}
+
+html[data-device="phone"] .quiz-step {
+    display: none;
+}
+
+html[data-device="phone"] .quiz-step.is-current {
+    display: block;
+}
+
+html[data-device="phone"] .form-group input,
+html[data-device="phone"] .form-group select {
+    padding: 14px 12px;
+    font-size: 16px;
+    border-radius: 10px;
+}
+
+html[data-device="phone"] .form-group label {
+    font-size: 14px;
+}
+
+html[data-device="phone"] .demo-btn {
+    display: block;
+    width: 100%;
+    margin: 0 0 8px;
+    padding: 12px 14px;
+    font-size: 14px;
+    text-align: left;
+}
+
+html[data-device="phone"] .quiz-nav {
+    display: flex;
+    gap: 10px;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 30;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+    background: rgba(243, 238, 228, 0.96);
+    border-top: 1px solid var(--line);
+}
+
+html[data-device="phone"] body.has-result .quiz-nav,
+html[data-device="phone"] body.is-analyzing .quiz-nav {
+    display: none;
+}
+
+html[data-device="phone"] .quiz-back,
+html[data-device="phone"] .quiz-next {
+    flex: 1;
+    border-radius: 999px;
+    padding: 14px 16px;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+html[data-device="phone"] .quiz-back {
+    background: #fff;
+    color: var(--forest);
+    border: 1px solid var(--line);
+}
+
+html[data-device="phone"] .quiz-next,
+html[data-device="phone"] .analyze-btn,
+html[data-device="phone"] .edit-answers-btn {
+    background: var(--forest);
+    color: #fff;
+    border: 0;
+}
+
+html[data-device="phone"] body[data-quiz-step="1"] #quizBack,
+html[data-device="phone"] body[data-quiz-step="3"] #quizNext,
+html[data-device="phone"] body:not([data-quiz-step="3"]) #analyzeButton {
+    display: none;
+}
+
+html[data-device="phone"] body:not(.has-result) .results-panel,
+html[data-device="phone"] body:not(.has-result) .satellite-images-section {
+    display: none;
+}
+
+html[data-device="phone"] body:not(.has-result):not([data-quiz-step="1"]) .map-container {
+    display: none;
+}
+
+html[data-device="phone"] .map-container {
+    min-height: 0;
+    grid-template-rows: 260px auto;
+    overflow: visible;
+}
+
+html[data-device="phone"] .map-section {
+    height: 260px;
+    min-height: 260px;
+}
+
+html[data-device="phone"] .satellite-images-section {
+    max-height: none;
+}
+
+html[data-device="phone"] .satellite-image {
+    height: 140px;
+}
+
+html[data-device="phone"] .panel-tab {
+    padding: 12px 14px;
+    font-size: 15px;
+}
+
+html[data-device="phone"] .edit-answers-btn {
+    display: none;
+    width: 100%;
+    margin-bottom: 12px;
+    padding: 12px 16px;
+    border-radius: 999px;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+html[data-device="phone"] body.has-result .edit-answers-btn {
+    display: block;
+}
+
+html[data-device="phone"] body.has-result .results-panel {
+    order: 1;
+}
+
+html[data-device="phone"] body.has-result .map-container {
+    order: 2;
+}
+
+html[data-device="phone"] body.is-analyzing:not([data-quiz-step="1"]) .map-container {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    min-height: 100dvh;
+    background: rgba(19, 32, 25, 0.28);
+    border: 0;
+    box-shadow: none;
+}
+
+html[data-device="phone"] body.is-analyzing .map-section {
+    height: 100dvh;
+    min-height: 100dvh;
+    background: transparent;
+}
+
+html[data-device="phone"] body.is-analyzing #map,
+html[data-device="phone"] body.is-analyzing .map-pick-hint,
+html[data-device="phone"] body.is-analyzing .satellite-images-section {
+    display: none;
 }
