@@ -179,6 +179,12 @@
                     <h2 style="margin: 0; font-size: 1.3em; font-family: var(--font-display);">Credit Assessment</h2>
                     <p style="margin: 5px 0 0 0; opacity: 0.9; font-size: 0.9em;">Satellite, weather, and farm evidence for banker review</p>
                 </div>
+
+                <div class="analysis-result" id="creditEvidenceCard">
+                    <h4>Land evidence</h4>
+                    <p id="creditEvidenceSummary" class="evidence-use">Run the assessment to gather soil, rainfall, vegetation, prices, and hazards. You can then download the full analysis.</p>
+                    <p class="evidence-source">SoilGrids can take a minute. The 300–850 score stays the ensemble result, and these readings are written into the same file.</p>
+                </div>
                 
                 <div id="successResults" class="hidden">
                     
@@ -206,6 +212,9 @@
                                 <div class="metric-value" id="interestRate">---</div>
                             </div>
                         </div>
+                        <button type="button" class="analyze-btn" id="downloadReportBtn" style="display:none;margin-top:8px;">Download credit analysis</button>
+                        <p id="downloadReportHint" class="evidence-source" style="display:none">Open the file and choose Save as PDF to keep a copy.</p>
+                        <div id="sourcesConsidered" class="evidence-source"></div>
                     </div>
                     
                     <!-- 2. LOAN TERMS & APPROVAL DETAILS -->
@@ -364,7 +373,7 @@
                 <div id="soilTabPanel" class="hidden">
                     <div style="background: var(--forest); color: white; padding: 20px; border-radius: 8px; margin-bottom: 25px; text-align: center;">
                         <h2 style="margin: 0; font-size: 1.3em; font-family: var(--font-display);">Soil analysis</h2>
-                        <p style="margin: 5px 0 0 0; opacity: 0.9; font-size: 0.9em;">Model estimate for the farm on the map. Not a laboratory sample.</p>
+                        <p style="margin: 5px 0 0 0; opacity: 0.9; font-size: 0.9em;">SoilGrids at the pin, plus a model reading for NPK and lime. Not a laboratory sample.</p>
                     </div>
                     <div class="analysis-result">
                         <h4 id="soilFarmTitle">Indramayu Rice Farm</h4>
@@ -390,8 +399,48 @@
                         <p id="soilEstimateNote" style="font-size: 12px; color: var(--muted); line-height: 1.45;"></p>
                     </div>
                     <div class="analysis-result">
+                        <h4>SoilGrids</h4>
+                        <p id="soilgridsSource" class="evidence-source">Loading the 250 m soil map…</p>
+                        <div class="key-metrics">
+                            <div class="metric-card">
+                                <div class="metric-label">pH water</div>
+                                <div class="metric-value" id="sgPh">…</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-label">Organic carbon</div>
+                                <div class="metric-value" id="sgSoc">…</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-label">Total nitrogen</div>
+                                <div class="metric-value" id="sgN">…</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-label">Clay</div>
+                                <div class="metric-value" id="sgClay">…</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="analysis-result">
                         <h4>Jun–Aug 2026 temperature</h4>
                         <p id="soilSeasonNote" style="font-size: 13px; line-height: 1.45;"></p>
+                    </div>
+                    <div class="analysis-result">
+                        <h4>Seasonal rainfall</h4>
+                        <p id="rainNote" class="evidence-use">Loading the rainfall record…</p>
+                    </div>
+                    <div class="analysis-result">
+                        <h4>Vegetation</h4>
+                        <div id="ndviChart"></div>
+                        <p id="ndviNote" class="evidence-use">Loading the vegetation record…</p>
+                    </div>
+                    <div class="analysis-result">
+                        <h4>Crop value and hazards</h4>
+                        <p id="marketNote" class="evidence-use">Loading the price and hazard readings…</p>
+                        <p id="hazardNote" class="evidence-use"></p>
+                    </div>
+                    <div class="analysis-result">
+                        <h4>How the bank uses this</h4>
+                        <div id="evidenceUses"></div>
                     </div>
                     <div class="analysis-result">
                         <h4>Evidence still needed</h4>
@@ -449,6 +498,7 @@
     <!-- Farmer Explanation Component -->
     <script src="farmer-explanation.js"></script>
     <!-- Agri-Accept Application -->
+    <script src="credit-report.js"></script>
     <script src="app.js"></script>
     <script>
         (function () {
@@ -485,14 +535,218 @@
                     : 'This pin was not one of the points summarized from the Jun–Aug 2026 temperature file.';
                 const who = match ? match.label : name;
                 const items = [
-                    ['Confirm the pH estimate', 'A lab buffer pH is still needed before applying lime on ' + who + '.'],
-                    ['Sample moisture and NPK', 'The model numbers are a starting point. Take them on a dry access day.'],
-                    ['Leave the credit file unchanged', 'This estimate does not move the score or the bank’s decision.']
+                    ['Confirm the map pH with a lab sample', 'The 250 m figure is a prior for ' + who + '. A buffer pH is what should justify lime.'],
+                    ['Read total nitrogen separately from NPK', 'The map reports total nitrogen in g/kg. The NPK card is still a model estimate in mg/kg.'],
+                    ['Download the analysis after the score appears', 'Soil, rainfall, vegetation, price, and hazards are written into that file with the ensemble score.']
                 ];
                 document.getElementById('soilChecklist').innerHTML = items.map(([title, body]) =>
-                    '<p style="margin:0 0 10px;font-size:13px;line-height:1.45;"><strong>' + title + '</strong><br>' + body + '</p>'
+                    '<p style="margin:0 0 10px;font-size:13px;line-height:1.45;"><strong>' + esc(title) + '</strong><br>' + esc(body) + '</p>'
                 ).join('');
-                loadSoilEstimate();
+                if (document.getElementById('soilTabPanel').classList.contains('hidden')) {
+                    evidenceCacheKey = '';
+                    soilCacheKey = '';
+                    showEvidenceIdle();
+                } else {
+                    loadSoilEstimate();
+                    loadFarmEvidence();
+                }
+            }
+
+            function showEvidenceIdle() {
+                ['sgPh', 'sgSoc', 'sgN', 'sgClay', 'soilPh', 'soilNpk', 'soilMoisture', 'soilLime'].forEach((id) => {
+                    const node = document.getElementById(id);
+                    if (node) node.textContent = '—';
+                });
+                document.getElementById('soilgridsSource').textContent = 'Open this tab, or run the assessment, to load SoilGrids. It can take a minute.';
+                document.getElementById('rainNote').textContent = 'Seasonal rainfall loads with the soil map.';
+                document.getElementById('ndviChart').innerHTML = '';
+                document.getElementById('ndviNote').textContent = 'The vegetation curve loads with the soil map.';
+                document.getElementById('marketNote').textContent = 'Crop value and hazards load with the soil map.';
+                document.getElementById('hazardNote').textContent = '';
+                document.getElementById('evidenceUses').innerHTML = '';
+                document.getElementById('soilEstimateNote').textContent = 'The model reading for NPK and lime loads with this tab.';
+                const summary = document.getElementById('creditEvidenceSummary');
+                if (summary) {
+                    summary.dataset.ready = '';
+                    summary.textContent = 'Run the assessment to gather soil, rainfall, vegetation, prices, and hazards. You can then download the full analysis.';
+                }
+            }
+
+            function esc(value) {
+                return String(value == null ? '' : value).replace(/[&<>"]/g, (ch) => ({
+                    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'
+                }[ch]));
+            }
+
+            function evidenceKey() {
+                const base = soilFarmKey();
+                if (!base) return '';
+                const size = document.getElementById('farmSize').value || '';
+                const loan = document.getElementById('loanAmount').value || '';
+                const term = document.getElementById('loanTerm').value || '';
+                return base + '|' + size + '|' + loan + '|' + term;
+            }
+
+            let evidenceCacheKey = '';
+            let evidenceFetchId = 0;
+
+            function showEvidencePending() {
+                ['sgPh', 'sgSoc', 'sgN', 'sgClay'].forEach((id) => {
+                    document.getElementById(id).textContent = '…';
+                });
+                document.getElementById('soilgridsSource').textContent = 'Loading the 250 m soil map…';
+                document.getElementById('rainNote').textContent = 'Loading the rainfall record…';
+                document.getElementById('ndviChart').innerHTML = '';
+                document.getElementById('ndviNote').textContent = 'Loading the vegetation record…';
+                document.getElementById('marketNote').textContent = 'Loading the price and hazard readings…';
+                document.getElementById('hazardNote').textContent = '';
+                document.getElementById('evidenceUses').innerHTML = '';
+                document.getElementById('creditEvidenceSummary').textContent = 'Loading soil, rainfall, vegetation, price, and hazard readings…';
+            }
+
+            function evidenceBrief(evidence) {
+                const soil = evidence.soilgrids || {};
+                const rain = evidence.rainfall || {};
+                const market = evidence.market || {};
+                const parts = [];
+                if (soil.ok) parts.push('SoilGrids pH ' + Number(soil.ph).toFixed(1));
+                if (rain.ok) parts.push(rain.season + ' rainfall is ' + rain.signal);
+                if (market.ok && market.cover_ratio != null) parts.push('a normal season covers ' + market.cover_ratio + '× the loan');
+                if (!parts.length) return 'Some land readings did not arrive. The score is still ready, and the download lists what was included.';
+                return parts.join(', ') + '. Download the credit analysis for the full memorandum.';
+            }
+
+            function ndviSvg(points) {
+                if (!points || points.length < 2) return '';
+                const width = 320;
+                const height = 72;
+                const pad = 6;
+                const values = points.map((point) => Number(point.ndvi));
+                const min = Math.min(0, ...values);
+                const max = Math.max(0.8, ...values);
+                const step = (width - pad * 2) / (points.length - 1);
+                const coords = values.map((value, index) => {
+                    const x = pad + index * step;
+                    const y = pad + (1 - (value - min) / (max - min || 1)) * (height - pad * 2);
+                    return x.toFixed(1) + ',' + y.toFixed(1);
+                }).join(' ');
+                return '<svg class="ndvi-chart" viewBox="0 0 ' + width + ' ' + height + '" role="img" aria-label="NDVI over the last year">'
+                    + '<polyline fill="none" stroke="#1a5c44" stroke-width="2" points="' + coords + '"/></svg>';
+            }
+
+            function showFarmEvidence(evidence) {
+                const soil = evidence.soilgrids || {};
+                if (soil.ok) {
+                    document.getElementById('sgPh').textContent = Number(soil.ph).toFixed(1);
+                    document.getElementById('sgSoc').textContent = soil.organic_carbon_g_kg + ' g/kg';
+                    document.getElementById('sgN').textContent = soil.nitrogen_g_kg + ' g/kg';
+                    document.getElementById('sgClay').textContent = soil.clay_percent + '%';
+                    document.getElementById('soilgridsSource').textContent = soil.source + '. Not a laboratory sample.';
+                } else {
+                    ['sgPh', 'sgSoc', 'sgN', 'sgClay'].forEach((id) => {
+                        document.getElementById(id).textContent = '—';
+                    });
+                    document.getElementById('soilgridsSource').textContent = soil.error || 'SoilGrids did not return a profile.';
+                }
+
+                const rain = evidence.rainfall || {};
+                document.getElementById('rainNote').textContent = rain.ok
+                    ? rain.season + ' totalled ' + rain.season_mm + ' mm. The ' + rain.normal_years
+                        + ' Jun–Aug normal is ' + rain.normal_mm + ' mm (' + rain.anomaly_percent
+                        + '%, ' + rain.signal + '). Source: ' + rain.source + '.'
+                    : (rain.error || 'Seasonal rainfall is unavailable.');
+
+                const plants = evidence.vegetation || {};
+                if (plants.ok) {
+                    document.getElementById('ndviChart').innerHTML = ndviSvg(plants.points);
+                    const sentinel = plants.sentinel || {};
+                    const sceneCount = sentinel.scenes_capped ? 'at least ' + sentinel.scenes : sentinel.scenes;
+                    const scenes = sentinel.ok
+                        ? ' Sentinel-2: ' + sceneCount + ' scenes under 40% cloud in the last 90 days'
+                            + (sentinel.latest ? ', latest ' + sentinel.latest : '')
+                            + ' (' + sentinel.source + ').'
+                        : '';
+                    document.getElementById('ndviNote').textContent = 'Latest NDVI ' + plants.latest
+                        + ' on ' + plants.latest_date + '. Mean ' + plants.mean + '. Source: '
+                        + plants.source + '.' + scenes;
+                } else {
+                    document.getElementById('ndviChart').innerHTML = '';
+                    document.getElementById('ndviNote').textContent = plants.error || 'The vegetation record is unavailable.';
+                }
+
+                const market = evidence.market || {};
+                document.getElementById('marketNote').textContent = market.ok
+                    ? market.instrument + ' near USD ' + market.usd_per_tonne + '/t (' + market.price_source
+                        + '). Rupiah ' + market.fx_idr + ' per dollar on ' + market.fx_date
+                        + ' (' + market.fx_source + '). ' + market.yield_label + ' on ' + market.area_ha
+                        + ' ha is about ' + market.season_value_label
+                        + (market.cover_ratio != null ? ', ' + market.cover_ratio + '× the requested ' + market.loan_label : '')
+                        + '.'
+                    : (market.error || 'A crop-value comparison is unavailable for this crop.');
+
+                const fire = evidence.fire || {};
+                const flood = evidence.flood || {};
+                const hazard = [];
+                if (fire.ok) {
+                    hazard.push(fire.flag
+                        ? fire.source + ': ' + fire.hotspots + ' active fire records.'
+                        : fire.source + ': none listed.' + (fire.firms ? ' ' + fire.firms + '.' : ''));
+                } else if (fire.error) {
+                    hazard.push(fire.error);
+                }
+                if (flood.ok) {
+                    hazard.push(flood.flag
+                        ? flood.source + ': peak ' + flood.peak_m3s + ' m³/s, ' + flood.ratio + '× the seasonal mean.'
+                        : flood.source + ': peak ' + flood.peak_m3s + ' m³/s against a mean of ' + flood.normal_m3s + ' m³/s.');
+                } else if (flood.error) {
+                    hazard.push(flood.error);
+                }
+                document.getElementById('hazardNote').textContent = hazard.join(' ');
+
+                const uses = evidence.uses || [];
+                document.getElementById('evidenceUses').innerHTML = uses.map((line) =>
+                    '<p class="evidence-use">' + esc(line) + '</p>'
+                ).join('');
+                const summary = document.getElementById('creditEvidenceSummary');
+                summary.dataset.ready = '1';
+                summary.textContent = evidenceBrief(evidence);
+            }
+
+            async function loadFarmEvidence() {
+                const key = evidenceKey();
+                if (!key) {
+                    document.getElementById('creditEvidenceSummary').textContent = 'Set a farm location to load land evidence.';
+                    return;
+                }
+                if (key === evidenceCacheKey) return;
+                const requestId = ++evidenceFetchId;
+                showEvidencePending();
+                try {
+                    const response = await fetch(window.agriApiUrl('/api/farm-evidence'), {
+                        method: 'POST',
+                        credentials: 'include',
+                        headers: window.agriAuthHeaders(),
+                        body: JSON.stringify({
+                            latitude: Number(document.getElementById('latitude').value),
+                            longitude: Number(document.getElementById('longitude').value),
+                            farmSize: Number(document.getElementById('farmSize').value) || 1,
+                            primaryCrop: document.getElementById('primaryCrop').value,
+                            loanAmount: (Number(document.getElementById('loanAmount').value) || 0) * 1000,
+                            loanTerm: Number(document.getElementById('loanTerm').value) || 12
+                        })
+                    });
+                    const data = await response.json().catch(() => ({}));
+                    if (requestId !== evidenceFetchId) return;
+                    if (!response.ok || !data.success || !data.evidence) {
+                        showFarmEvidence({ uses: [data.error || 'Land evidence is unavailable right now.'] });
+                        return;
+                    }
+                    evidenceCacheKey = key;
+                    showFarmEvidence(data.evidence);
+                } catch (err) {
+                    if (requestId !== evidenceFetchId) return;
+                    showFarmEvidence({ uses: ['Land evidence is unavailable right now.'] });
+                }
             }
 
             let soilCacheKey = '';
@@ -578,9 +832,14 @@
             }
 
             window.refreshSoilPanel = refreshSoilPanel;
+            window.applyFarmEvidence = function (evidence) {
+                if (!evidence) return;
+                evidenceCacheKey = evidenceKey();
+                showFarmEvidence(evidence);
+            };
             document.getElementById('soilTabBtn').addEventListener('click', () => showResultsTab('soil'));
             document.getElementById('creditTabBtn').addEventListener('click', () => showResultsTab('credit'));
-            ['farmerName', 'primaryCrop', 'farmSize'].forEach((id) => {
+            ['farmerName', 'primaryCrop', 'farmSize', 'loanAmount', 'loanTerm'].forEach((id) => {
                 const field = document.getElementById(id);
                 if (field) field.addEventListener('change', refreshSoilPanel);
             });

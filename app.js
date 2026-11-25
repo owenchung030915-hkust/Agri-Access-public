@@ -720,8 +720,10 @@ async function analyzeWithRealNASAData() {
 
     _analyzeInFlight = true;
     if (button) button.disabled = true;
+    let progressTimer = null;
 
     const finishAnalyze = () => {
+        if (progressTimer) clearInterval(progressTimer);
         _analyzeInFlight = false;
         if (button) button.disabled = false;
         if (loading) {
@@ -791,7 +793,19 @@ async function analyzeWithRealNASAData() {
 
         const modelStatus = await waitForModelReady();
         console.log(' Model ready:', modelStatus);
-        loadingStatus.textContent = 'Processing satellite and weather data...';
+        const progressLines = [
+            'Reading the farm, weather, and satellite features…',
+            'Asking SoilGrids for pH, carbon, nitrogen, and clay…',
+            'Comparing this season’s rainfall with the recent normal…',
+            'Reading vegetation, crop prices, and nearby hazards…',
+            'Finishing the score. This can take a minute…'
+        ];
+        let progressStep = 0;
+        if (loadingStatus) loadingStatus.textContent = progressLines[0];
+        progressTimer = setInterval(() => {
+            progressStep = Math.min(progressStep + 1, progressLines.length - 1);
+            if (loadingStatus) loadingStatus.textContent = progressLines[progressStep];
+        }, 7000);
         
         // Call Basel III API for credit scoring analysis
         console.log(' Calling Basel III API at:', API_CONFIG.endpoints.analyze);
@@ -835,30 +849,22 @@ async function analyzeWithRealNASAData() {
         // Add success flag for compatibility with existing display logic
         result.success = result.success !== false;
         
-        // Update workflow status progression
         updateWorkflowStatus(2, 'completed');
-        updateWorkflowStatus(3, 'active');
-        if (loadingStatus) loadingStatus.textContent = 'Quantifying credit risk from satellite and farm data...';
-        
-        await new Promise(resolve => setTimeout(resolve, 200));
-        
-        updateWorkflowStatus(3, 'completed');
-        updateWorkflowStatus(4, 'active');
-        if (loadingStatus) loadingStatus.textContent = 'Computing PD, LGD, EAD and credit score...';
-        
-        await new Promise(resolve => setTimeout(resolve, 200));
-        
-        updateWorkflowStatus(4, 'completed');
-        updateWorkflowStatus(5, 'active');
-        if (loadingStatus) loadingStatus.textContent = 'Generating SHAP explanations...';
-        
-        await new Promise(resolve => setTimeout(resolve, 200));
-        
         updateWorkflowStatus(5, 'completed');
+        if (loadingStatus) loadingStatus.textContent = 'Opening the credit analysis…';
         
         // Display results
         try {
+            window.__lastCreditAnalysis = result;
             displayAnalysisResults(result);
+            const downloadBtn = document.getElementById('downloadReportBtn');
+            const downloadHint = document.getElementById('downloadReportHint');
+            if (downloadBtn) downloadBtn.style.display = 'block';
+            if (downloadHint) downloadHint.style.display = 'block';
+            renderSourcesConsidered(result.sources_considered);
+            if (result.land_evidence && typeof window.applyFarmEvidence === 'function') {
+                window.applyFarmEvidence(result.land_evidence);
+            }
         } catch (displayError) {
             console.error('Error in displayAnalysisResults:', displayError);
             // Still force-show satellite tiles if we have them
@@ -1440,6 +1446,21 @@ function updateLiveWeatherPanel(weatherAnalysis) {
 
 
 // Basel III Results Display Function
+function renderSourcesConsidered(rows) {
+    const node = document.getElementById('sourcesConsidered');
+    if (!node) return;
+    if (!rows || !rows.length) {
+        node.textContent = '';
+        return;
+    }
+    const included = rows.filter((row) => row.status === 'included').map((row) => row.name);
+    const missing = rows.filter((row) => row.status !== 'included').map((row) => row.name);
+    const parts = [];
+    if (included.length) parts.push('Included: ' + included.join(', ') + '.');
+    if (missing.length) parts.push('Did not answer in time: ' + missing.join(', ') + '.');
+    node.textContent = parts.join(' ');
+}
+
 function displayBaselIIIResults(baselResults, formattedResults) {
     console.log(' Displaying Basel III results:', baselResults, formattedResults);
     
@@ -1742,6 +1763,15 @@ document.addEventListener('DOMContentLoaded', function() {
             btn.addEventListener('click', function (ev) {
                 ev.preventDefault();
                 analyzeWithRealNASAData();
+            });
+        }
+        const downloadBtn = document.getElementById('downloadReportBtn');
+        if (downloadBtn && !downloadBtn.dataset.wired) {
+            downloadBtn.dataset.wired = '1';
+            downloadBtn.addEventListener('click', function (ev) {
+                ev.preventDefault();
+                if (!window.__lastCreditAnalysis || !window.AgriCreditReport) return;
+                window.AgriCreditReport.download(window.__lastCreditAnalysis);
             });
         }
     }, 100);
