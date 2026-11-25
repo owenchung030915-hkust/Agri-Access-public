@@ -150,15 +150,88 @@ body {
 }
 
 @media (max-width: 900px) {
-    .main-grid {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto auto auto;
+    body {
         height: auto;
-    }
-    
-    .control-panel, .results-panel {
-        max-height: 400px;
+        min-height: 100dvh;
+        overflow-x: hidden;
         overflow-y: auto;
+    }
+
+    .header {
+        padding: 18px 16px 16px;
+    }
+
+    .header-flex {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .header h1 {
+        font-size: 1.85em;
+    }
+
+    .header-buttons {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .header-btn {
+        padding: 11px 14px;
+        font-size: 14px;
+    }
+
+    .main-grid {
+        display: flex;
+        flex-direction: column;
+        height: auto;
+        overflow: visible;
+        padding: 12px;
+        gap: 14px;
+    }
+
+    .control-panel,
+    .results-panel {
+        max-height: none;
+        overflow: visible;
+    }
+
+    .control-panel {
+        order: 1;
+    }
+
+    .results-panel {
+        order: 2;
+    }
+
+    .map-container {
+        order: 3;
+        min-height: 0;
+        grid-template-rows: 320px auto;
+        overflow: visible;
+    }
+
+    .map-section {
+        height: 320px;
+        min-height: 320px;
+    }
+
+    .satellite-images-section {
+        max-height: none;
+    }
+
+    .satellite-image {
+        height: 120px;
+    }
+
+    .panel-tab {
+        padding: 12px 14px;
+        font-size: 15px;
+    }
+
+    .map-pick-hint {
+        font-size: 13px;
+        padding: 12px 14px;
     }
 }
 

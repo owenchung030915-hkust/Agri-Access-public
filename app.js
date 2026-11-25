@@ -899,6 +899,14 @@ async function analyzeWithRealNASAData() {
 
 // ===== RESULT DISPLAY FUNCTIONS =====
 
+function revealCreditResults() {
+    const panel = document.querySelector('.results-panel');
+    if (!panel || !window.matchMedia('(max-width: 900px)').matches) return;
+    setTimeout(() => {
+        panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 80);
+}
+
 function displayAnalysisResults(result) {
     console.log(' Displaying results:', result);
     
@@ -913,6 +921,7 @@ function displayAnalysisResults(result) {
         // Show success results panel
         document.getElementById('successResults').classList.remove('hidden');
         document.getElementById('failureResults').classList.add('hidden');
+        revealCreditResults();
         const defaultInfo = document.getElementById('defaultInfo');
         if (defaultInfo) defaultInfo.style.display = 'none';
         
@@ -1011,6 +1020,7 @@ function displayAnalysisResults(result) {
         // Show success results
         document.getElementById('successResults').classList.remove('hidden');
         document.getElementById('failureResults').classList.add('hidden');
+        revealCreditResults();
         const defaultInfo = document.getElementById('defaultInfo');
         if (defaultInfo) defaultInfo.style.display = 'none';
         
